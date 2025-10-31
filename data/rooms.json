@@ -28,5 +28,15 @@
     "pricePerDay": 75.0,
     "currentPatientId": null,
     "createdAt": "2025-10-30T00:23:42.351523"
+  },
+  {
+    "id": "room_1761926398706",
+    "roomNumber": "R004",
+    "type": "general",
+    "status": "available",
+    "bedCount": 2,
+    "pricePerDay": 50.0,
+    "currentPatientId": null,
+    "createdAt": "2025-10-31T22:59:58.706455"
   }
 ]

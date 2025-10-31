@@ -8,6 +8,7 @@ class AppointmentConverter {
       'id': appointment.id,
       'patientId': appointment.patientId,
       'doctorId': appointment.doctorId,
+      'roomId': appointment.roomId,
       'appointmentDate': appointment.appointmentDate.toIso8601String(),
       'status': appointment.status.name,
       'reason': appointment.reason,
@@ -22,6 +23,7 @@ class AppointmentConverter {
       id: json['id'],
       patientId: json['patientId'],
       doctorId: json['doctorId'],
+      roomId: json['roomId'] ?? '', // Default to empty string for old data
       appointmentDate: DateTime.parse(json['appointmentDate']),
       status: AppointmentStatus.fromString(json['status']),
       reason: json['reason'],

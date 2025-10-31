@@ -70,6 +70,8 @@ class ConsoleApp {
       _userService,
       _doctorService,
       _roomService,
+      _patientService,
+      _appointmentService,
     );
 
     _receptionistMenu = ReceptionistMenu(
@@ -77,6 +79,7 @@ class ConsoleApp {
       _patientService,
       _appointmentService,
       _doctorService,
+      _roomService,
     );
 
     _mainMenu = MainMenu(_authService, _adminMenu, _receptionistMenu);

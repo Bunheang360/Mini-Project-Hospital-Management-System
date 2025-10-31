@@ -17,5 +17,15 @@
     "fullName": "Chheng Bunheang",
     "phoneNumber": "069763854",
     "createdBy": "admin001"
+  },
+  {
+    "id": "user_1761927432451",
+    "username": "Bunheng",
+    "password": "Bunheng123",
+    "role": "receptionist",
+    "createdAt": "2025-10-31T23:17:12.451371",
+    "fullName": "Chheng Bunheng",
+    "phoneNumber": "069763854",
+    "createdBy": "admin001"
   }
 ]

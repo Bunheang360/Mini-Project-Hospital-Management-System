@@ -71,8 +71,9 @@ class InputValidator {
   }
 
   // Read choice from menu
-  static int readChoice(String prompt, int maxChoice) {
-    return readInt(prompt, min: 1, max: maxChoice);
+  static int readChoice(String prompt, int maxChoice, {bool allowZero = true}) {
+    final minChoice = allowZero ? 0 : 1;
+    return readInt(prompt, min: minChoice, max: maxChoice);
   }
 
   // Read yes/no confirmation
@@ -180,8 +181,11 @@ class InputValidator {
       final hour = int.tryParse(timeParts[0]);
       final minute = int.tryParse(timeParts[1]);
 
-      if (day == null || month == null || year == null ||
-          hour == null || minute == null) {
+      if (day == null ||
+          month == null ||
+          year == null ||
+          hour == null ||
+          minute == null) {
         print('✗ Invalid date/time values.');
         continue;
       }

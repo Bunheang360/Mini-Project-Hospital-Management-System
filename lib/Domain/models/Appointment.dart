@@ -4,6 +4,7 @@ class Appointment {
   final String id;
   final String patientId;
   final String doctorId;
+  final String roomId; // Room where appointment will take place
   final DateTime appointmentDate;
   AppointmentStatus status;
   final String reason;
@@ -14,6 +15,7 @@ class Appointment {
     required this.id,
     required this.patientId,
     required this.doctorId,
+    required this.roomId,
     required this.appointmentDate,
     required this.status,
     required this.reason,
@@ -89,8 +91,10 @@ class Appointment {
   }
 
   String getDisplayInfo() {
-    final dateStr = '${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}';
-    final timeStr = '${appointmentDate.hour.toString().padLeft(2, '0')}:${appointmentDate.minute.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}';
+    final timeStr =
+        '${appointmentDate.hour.toString().padLeft(2, '0')}:${appointmentDate.minute.toString().padLeft(2, '0')}';
     return 'Appointment on $dateStr at $timeStr - ${status.displayName}';
   }
 

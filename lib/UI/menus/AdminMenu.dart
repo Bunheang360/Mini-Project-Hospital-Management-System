@@ -2,6 +2,8 @@ import '../../Domain/services/AuthService.dart';
 import '../../Domain/services/UserService.dart';
 import '../../Domain/services/DoctorService.dart';
 import '../../Domain/services/RoomService.dart';
+import '../../Domain/services/PatientService.dart';
+import '../../Domain/services/AppointmentService.dart';
 import '../../Domain/enums/Gender.dart';
 import '../../Domain/enums/RoomType.dart';
 import '../utils/ConsoleHelper.dart';
@@ -12,12 +14,16 @@ class AdminMenu {
   final UserService _userService;
   final DoctorService _doctorService;
   final RoomService _roomService;
+  final PatientService _patientService;
+  final AppointmentService _appointmentService;
 
   AdminMenu(
     this._authService,
     this._userService,
     this._doctorService,
     this._roomService,
+    this._patientService,
+    this._appointmentService,
   );
 
   // ========== HELPER FUNCTIONS ==========
@@ -32,18 +38,18 @@ class AdminMenu {
     }
 
     print('\nReceptionists:');
+    print('0. Cancel');
     for (int i = 0; i < receptionists.length; i++) {
       print(
         '${i + 1}. ${receptionists[i].fullName} (${receptionists[i].username})',
       );
     }
-    print('${receptionists.length + 1}. Cancel');
 
     final choice = InputValidator.readChoice(
       'Select receptionist',
-      receptionists.length + 1,
+      receptionists.length,
     );
-    if (choice == receptionists.length + 1) return null;
+    if (choice == 0) return null;
 
     return receptionists[choice - 1].id;
   }
@@ -74,16 +80,13 @@ class AdminMenu {
     }
 
     print('\nDoctors found:');
+    print('0. Cancel');
     for (int i = 0; i < doctors.length; i++) {
       print('${i + 1}. Dr. ${doctors[i].name} - ${doctors[i].specialization}');
     }
-    print('${doctors.length + 1}. Cancel');
 
-    final choice = InputValidator.readChoice(
-      'Select doctor',
-      doctors.length + 1,
-    );
-    if (choice == doctors.length + 1) return null;
+    final choice = InputValidator.readChoice('Select doctor', doctors.length);
+    if (choice == 0) return null;
 
     return doctors[choice - 1].id;
   }
@@ -104,7 +107,11 @@ class AdminMenu {
         'Logout',
       ]);
 
-      final choice = InputValidator.readChoice('\nEnter your choice', 5);
+      final choice = InputValidator.readChoice(
+        '\nEnter your choice',
+        5,
+        allowZero: false,
+      );
 
       switch (choice) {
         case 1:
@@ -138,7 +145,11 @@ class AdminMenu {
         'Back to Main Menu',
       ]);
 
-      final choice = InputValidator.readChoice('\nEnter your choice', 4);
+      final choice = InputValidator.readChoice(
+        '\nEnter your choice',
+        4,
+        allowZero: false,
+      );
 
       switch (choice) {
         case 1:
@@ -198,7 +209,7 @@ class AdminMenu {
       } else {
         ConsoleHelper.printTableHeader(
           ['ID', 'Username', 'Full Name', 'Phone', 'Created'],
-          [15, 15, 20, 15, 12],
+          [20, 15, 25, 15, 12],
         );
 
         for (var receptionist in receptionists) {
@@ -210,7 +221,7 @@ class AdminMenu {
               receptionist.phoneNumber,
               ConsoleHelper.formatDate(receptionist.createdAt),
             ],
-            [15, 15, 20, 15, 12],
+            [20, 15, 25, 15, 12],
           );
         }
 
@@ -230,7 +241,6 @@ class AdminMenu {
     try {
       final id = await _selectReceptionistByName();
       if (id == null) {
-        ConsoleHelper.printWarning('Operation cancelled');
         ConsoleHelper.pressEnterToContinue();
         return;
       }
@@ -262,12 +272,17 @@ class AdminMenu {
       ConsoleHelper.printMenu([
         'Create New Doctor',
         'View All Doctors',
+        'Search Doctor by Name',
         'Search Doctor by Specialization',
         'Delete Doctor',
         'Back to Main Menu',
       ]);
 
-      final choice = InputValidator.readChoice('\nEnter your choice', 5);
+      final choice = InputValidator.readChoice(
+        '\nEnter your choice',
+        6,
+        allowZero: false,
+      );
 
       switch (choice) {
         case 1:
@@ -277,12 +292,15 @@ class AdminMenu {
           await _viewAllDoctors();
           break;
         case 3:
-          await _searchDoctorBySpecialization();
+          await _searchDoctorByName();
           break;
         case 4:
-          await _deleteDoctor();
+          await _searchDoctorBySpecialization();
           break;
         case 5:
+          await _deleteDoctor();
+          break;
+        case 6:
           return;
       }
     }
@@ -340,7 +358,7 @@ class AdminMenu {
       } else {
         ConsoleHelper.printTableHeader(
           ['ID', 'Name', 'Specialization', 'Phone', 'Exp'],
-          [15, 20, 20, 15, 5],
+          [20, 25, 25, 15, 5],
         );
 
         for (var doctor in doctors) {
@@ -352,11 +370,51 @@ class AdminMenu {
               doctor.phoneNumber,
               '${doctor.yearsOfExperience}y',
             ],
-            [15, 20, 20, 15, 5],
+            [20, 25, 25, 15, 5],
           );
         }
 
         print('\nTotal: ${doctors.length}');
+      }
+    } catch (e) {
+      ConsoleHelper.printError(e.toString());
+    }
+
+    ConsoleHelper.pressEnterToContinue();
+  }
+
+  Future<void> _searchDoctorByName() async {
+    ConsoleHelper.clearScreen();
+    ConsoleHelper.printSection('Search Doctor by Name');
+
+    try {
+      final name = InputValidator.readString('Enter doctor name');
+      final allDoctors = await _doctorService.getAllDoctors();
+      final doctors = allDoctors
+          .where((d) => d.name.toLowerCase().contains(name.toLowerCase()))
+          .toList();
+
+      if (doctors.isEmpty) {
+        ConsoleHelper.printInfo('No doctors found with that name');
+      } else {
+        ConsoleHelper.printTableHeader(
+          ['ID', 'Name', 'Specialization', 'Experience'],
+          [20, 25, 25, 12],
+        );
+
+        for (var doctor in doctors) {
+          ConsoleHelper.printTableRow(
+            [
+              doctor.id,
+              'Dr. ${doctor.name}',
+              doctor.specialization,
+              '${doctor.yearsOfExperience} years',
+            ],
+            [20, 25, 25, 12],
+          );
+        }
+
+        print('\nFound: ${doctors.length}');
       }
     } catch (e) {
       ConsoleHelper.printError(e.toString());
@@ -380,7 +438,7 @@ class AdminMenu {
       } else {
         ConsoleHelper.printTableHeader(
           ['ID', 'Name', 'Specialization', 'Experience'],
-          [15, 25, 25, 10],
+          [20, 25, 25, 12],
         );
 
         for (var doctor in doctors) {
@@ -391,7 +449,7 @@ class AdminMenu {
               doctor.specialization,
               '${doctor.yearsOfExperience} years',
             ],
-            [15, 25, 25, 10],
+            [20, 25, 25, 12],
           );
         }
 
@@ -411,7 +469,6 @@ class AdminMenu {
     try {
       final id = await _selectDoctorByName();
       if (id == null) {
-        ConsoleHelper.printWarning('Operation cancelled');
         ConsoleHelper.pressEnterToContinue();
         return;
       }
@@ -448,7 +505,11 @@ class AdminMenu {
         'Back to Main Menu',
       ]);
 
-      final choice = InputValidator.readChoice('\nEnter your choice', 5);
+      final choice = InputValidator.readChoice(
+        '\nEnter your choice',
+        5,
+        allowZero: false,
+      );
 
       switch (choice) {
         case 1:
@@ -513,7 +574,7 @@ class AdminMenu {
       } else {
         ConsoleHelper.printTableHeader(
           ['ID', 'Room #', 'Type', 'Status', 'Beds', 'Price/Day'],
-          [15, 10, 20, 15, 6, 12],
+          [20, 10, 30, 15, 6, 12],
         );
 
         for (var room in rooms) {
@@ -526,7 +587,7 @@ class AdminMenu {
               '${room.bedCount}',
               '\$${room.pricePerDay.toStringAsFixed(2)}',
             ],
-            [15, 10, 20, 15, 6, 12],
+            [20, 10, 30, 15, 6, 12],
           );
         }
 
@@ -551,7 +612,7 @@ class AdminMenu {
       } else {
         ConsoleHelper.printTableHeader(
           ['Room #', 'Type', 'Beds', 'Price/Day'],
-          [10, 25, 6, 12],
+          [10, 30, 6, 12],
         );
 
         for (var room in rooms) {
@@ -562,7 +623,7 @@ class AdminMenu {
               '${room.bedCount}',
               '\$${room.pricePerDay.toStringAsFixed(2)}',
             ],
-            [10, 25, 6, 12],
+            [10, 30, 6, 12],
           );
         }
 
@@ -582,15 +643,36 @@ class AdminMenu {
     try {
       await _viewAllRooms();
 
-      final id = InputValidator.readString('Enter Room ID to delete');
+      final roomNumber = InputValidator.readString(
+        'Enter Room Number to delete',
+      );
 
-      if (InputValidator.readConfirmation('Are you sure?')) {
-        final deleted = await _roomService.deleteRoom(id);
+      // Get room by room number
+      final room = await _roomService.getRoomByRoomNumber(roomNumber);
+
+      if (room == null) {
+        ConsoleHelper.printError('Room not found');
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
+
+      // Display room details
+      print('\nRoom Details:');
+      print('Room Number: ${room.roomNumber}');
+      print('Type: ${room.type.displayName}');
+      print('Status: ${room.status.displayName}');
+      print('Beds: ${room.bedCount}');
+      print('Price/Day: \$${room.pricePerDay.toStringAsFixed(2)}');
+
+      if (InputValidator.readConfirmation(
+        '\nAre you sure you want to delete this room?',
+      )) {
+        final deleted = await _roomService.deleteRoom(room.id);
 
         if (deleted) {
           ConsoleHelper.printSuccess('Room deleted successfully');
         } else {
-          ConsoleHelper.printError('Room not found');
+          ConsoleHelper.printError('Failed to delete room');
         }
       }
     } catch (e) {
@@ -608,13 +690,33 @@ class AdminMenu {
     try {
       final receptionistCount = await _userService.getReceptionistCount();
       final doctorCount = await _doctorService.getDoctorCount();
+      final patientCount = await _patientService.getPatientCount();
       final roomCount = await _roomService.getRoomCount();
       final availableRoomCount = await _roomService.getAvailableRoomCount();
 
+      // Appointment statistics
+      final scheduledAppointments = await _appointmentService
+          .getScheduledAppointmentCount();
+      final allAppointments = await _appointmentService.getAllAppointments();
+      final completedAppointments = allAppointments
+          .where((apt) => apt.status.name == 'completed')
+          .length;
+
+      print('═══════════════════════════════════════');
+      print('  STAFF & RESOURCES');
+      print('═══════════════════════════════════════');
       print('Total Receptionists: $receptionistCount');
       print('Total Doctors: $doctorCount');
+      print('Total Patients: $patientCount');
       print('Total Rooms: $roomCount');
       print('Available Rooms: $availableRoomCount');
+      print('');
+      print('═══════════════════════════════════════');
+      print('  APPOINTMENTS');
+      print('═══════════════════════════════════════');
+      print('Scheduled Appointments: $scheduledAppointments');
+      print('Completed Appointments: $completedAppointments');
+      print('Total Appointments: ${allAppointments.length}');
     } catch (e) {
       ConsoleHelper.printError(e.toString());
     }

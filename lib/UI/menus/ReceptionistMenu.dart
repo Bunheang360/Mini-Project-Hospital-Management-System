@@ -2,7 +2,11 @@ import '../../Domain/services/AuthService.dart';
 import '../../Domain/services/PatientService.dart';
 import '../../Domain/services/AppointmentService.dart';
 import '../../Domain/services/DoctorService.dart';
+import '../../Domain/services/RoomService.dart';
+import '../../Domain/models/Appointment.dart';
+import '../../Domain/models/Patient.dart';
 import '../../Domain/enums/Gender.dart';
+import '../../Domain/enums/RoomType.dart';
 import '../../Domain/enums/AppointmentStatus.dart';
 import '../utils/ConsoleHelper.dart';
 import '../utils/InputValidUtils.dart';
@@ -12,12 +16,14 @@ class ReceptionistMenu {
   final PatientService _patientService;
   final AppointmentService _appointmentService;
   final DoctorService _doctorService;
+  final RoomService _roomService;
 
   ReceptionistMenu(
     this._authService,
     this._patientService,
     this._appointmentService,
     this._doctorService,
+    this._roomService,
   );
 
   // ========== HELPER FUNCTIONS ==========
@@ -39,18 +45,15 @@ class ReceptionistMenu {
 
     // Multiple patients found - let user choose
     print('\nMultiple patients found:');
+    print('0. Cancel');
     for (int i = 0; i < patients.length; i++) {
       print(
         '${i + 1}. ${patients[i].name} (Age: ${patients[i].age}, Phone: ${patients[i].phoneNumber})',
       );
     }
-    print('${patients.length + 1}. Cancel');
 
-    final choice = InputValidator.readChoice(
-      'Select patient',
-      patients.length + 1,
-    );
-    if (choice == patients.length + 1) return null;
+    final choice = InputValidator.readChoice('Select patient', patients.length);
+    if (choice == 0) return null;
 
     return patients[choice - 1].id;
   }
@@ -86,20 +89,103 @@ class ReceptionistMenu {
 
     // Multiple doctors found - let user choose
     print('\nDoctors found:');
+    print('0. Cancel');
     for (int i = 0; i < doctors.length; i++) {
       print(
         '${i + 1}. Dr. ${doctors[i].name} - ${doctors[i].specialization} (${doctors[i].yearsOfExperience} years exp.)',
       );
     }
-    print('${doctors.length + 1}. Cancel');
 
-    final choice = InputValidator.readChoice(
-      'Select doctor',
-      doctors.length + 1,
-    );
-    if (choice == doctors.length + 1) return null;
+    final choice = InputValidator.readChoice('Select doctor', doctors.length);
+    if (choice == 0) return null;
 
     return doctors[choice - 1].id;
+  }
+
+  // Helper: Select room by type
+  Future<String?> _selectRoomByType() async {
+    // First, let user select room type
+    print('\n--- Select Room Type ---');
+    final roomTypes = RoomType.values;
+
+    print('0. Cancel');
+    for (int i = 0; i < roomTypes.length; i++) {
+      print('${i + 1}. ${roomTypes[i].displayName}');
+    }
+
+    final typeChoice = InputValidator.readChoice(
+      'Select room type',
+      roomTypes.length,
+    );
+    if (typeChoice == 0) return null;
+
+    final selectedType = roomTypes[typeChoice - 1];
+
+    // Get available rooms for that type
+    final allRoomsOfType = await _roomService.getRoomsByType(selectedType);
+
+    // Filter to only show available rooms (not occupied or in maintenance)
+    final rooms = allRoomsOfType.where((r) => r.isAvailable()).toList();
+
+    if (rooms.isEmpty) {
+      ConsoleHelper.printError(
+        'No available rooms for ${selectedType.displayName}',
+      );
+      return null;
+    }
+
+    // Display available rooms
+    print('\n--- Available ${selectedType.displayName} Rooms ---');
+    print('0. Cancel');
+    for (int i = 0; i < rooms.length; i++) {
+      final room = rooms[i];
+      print(
+        '${i + 1}. Room ${room.roomNumber} - ${room.bedCount} bed(s) - \$${room.pricePerDay}/day',
+      );
+    }
+
+    final roomChoice = InputValidator.readChoice('Select room', rooms.length);
+    if (roomChoice == 0) return null;
+
+    return rooms[roomChoice - 1].id;
+  }
+
+  // Helper: Select appointment from a list
+  Future<String?> _selectAppointmentFromList(
+    List<dynamic> appointments,
+    String title,
+  ) async {
+    if (appointments.isEmpty) {
+      ConsoleHelper.printError('No appointments available');
+      return null;
+    }
+
+    print('\n$title:');
+    print('0. Cancel');
+    for (int i = 0; i < appointments.length; i++) {
+      final apt = appointments[i];
+      // Get patient and doctor names
+      final patient = await _patientService.getPatientById(apt.patientId);
+      final doctor = await _doctorService.getDoctorById(apt.doctorId);
+      final room = await _roomService.getRoomById(apt.roomId);
+
+      final patientName = patient?.name ?? 'Unknown';
+      final doctorName = doctor?.name ?? 'Unknown';
+      final roomNumber = room?.roomNumber ?? 'N/A';
+      final dateStr = ConsoleHelper.formatDateTime(apt.appointmentDate);
+
+      print(
+        '${i + 1}. $patientName with Dr. $doctorName in Room $roomNumber on $dateStr - ${apt.status.displayName}',
+      );
+    }
+
+    final choice = InputValidator.readChoice(
+      'Select appointment',
+      appointments.length,
+    );
+    if (choice == 0) return null;
+
+    return appointments[choice - 1].id;
   }
 
   Future<void> show() async {
@@ -116,7 +202,11 @@ class ReceptionistMenu {
         'Logout',
       ]);
 
-      final choice = InputValidator.readChoice('\nEnter your choice', 3);
+      final choice = InputValidator.readChoice(
+        '\nEnter your choice',
+        3,
+        allowZero: false,
+      );
 
       switch (choice) {
         case 1:
@@ -146,7 +236,11 @@ class ReceptionistMenu {
         'Back to Main Menu',
       ]);
 
-      final choice = InputValidator.readChoice('\nEnter your choice', 6);
+      final choice = InputValidator.readChoice(
+        '\nEnter your choice',
+        6,
+        allowZero: false,
+      );
 
       switch (choice) {
         case 1:
@@ -226,8 +320,16 @@ class ReceptionistMenu {
         ConsoleHelper.printInfo('No patients found');
       } else {
         ConsoleHelper.printTableHeader(
-          ['ID', 'Name', 'Age', 'Gender', 'Phone'],
-          [15, 20, 5, 8, 15],
+          [
+            'ID',
+            'Name',
+            'Age',
+            'Gender',
+            'Phone',
+            'Address',
+            'Medical History',
+          ],
+          [20, 25, 5, 8, 15, 30, 30],
         );
 
         for (var patient in patients) {
@@ -238,8 +340,10 @@ class ReceptionistMenu {
               '${patient.age}',
               patient.gender.displayName,
               patient.phoneNumber,
+              patient.address,
+              patient.medicalHistory ?? 'None',
             ],
-            [15, 20, 5, 8, 15],
+            [20, 25, 5, 8, 15, 30, 30],
           );
         }
 
@@ -265,7 +369,7 @@ class ReceptionistMenu {
       } else {
         ConsoleHelper.printTableHeader(
           ['ID', 'Name', 'Age', 'Phone', 'Address'],
-          [15, 20, 5, 15, 25],
+          [20, 25, 5, 15, 30],
         );
 
         for (var patient in patients) {
@@ -277,7 +381,7 @@ class ReceptionistMenu {
               patient.phoneNumber,
               patient.address,
             ],
-            [15, 20, 5, 15, 25],
+            [20, 25, 5, 15, 30],
           );
         }
 
@@ -297,7 +401,6 @@ class ReceptionistMenu {
     try {
       final id = await _selectPatientByName();
       if (id == null) {
-        ConsoleHelper.printWarning('Operation cancelled');
         ConsoleHelper.pressEnterToContinue();
         return;
       }
@@ -310,12 +413,44 @@ class ReceptionistMenu {
         return;
       }
 
-      ConsoleHelper.printInfo(
-        'Current: ${patient.name}, ${patient.age}y, ${patient.phoneNumber}',
+      // Display current patient information
+      print('\n══════════════════════════════════════');
+      print('  CURRENT PATIENT INFORMATION');
+      print('══════════════════════════════════════');
+      print('Name: ${patient.name}');
+      print('Age: ${patient.age}');
+      print('Gender: ${patient.gender.displayName}');
+      print('Phone: ${patient.phoneNumber}');
+      print('Address: ${patient.address}');
+      print('Medical History: ${patient.medicalHistory ?? 'None'}');
+      print('══════════════════════════════════════\n');
+
+      // Get new values (allow keeping current values)
+      final newName = InputValidator.readString(
+        'New Name (or press Enter to keep "${patient.name}")',
+        allowEmpty: true,
       );
 
+      final ageInput = InputValidator.readString(
+        'New Age (or press Enter to keep ${patient.age})',
+        allowEmpty: true,
+      );
+      final newAge = ageInput.isEmpty ? patient.age : int.parse(ageInput);
+
+      // Gender update
+      final updateGender = InputValidator.readConfirmation(
+        'Update Gender? Current: ${patient.gender.displayName}',
+      );
+      Gender newGender = patient.gender;
+      if (updateGender) {
+        print('\nSelect new gender:');
+        ConsoleHelper.printMenu(['Male', 'Female', 'Other']);
+        final genderChoice = InputValidator.readChoice('Select gender', 3);
+        newGender = Gender.values[genderChoice - 1];
+      }
+
       final newPhone = InputValidator.readString(
-        'New Phone Number (or press Enter to keep current)',
+        'New Phone Number (or press Enter to keep "${patient.phoneNumber}")',
         allowEmpty: true,
       );
 
@@ -324,17 +459,53 @@ class ReceptionistMenu {
         allowEmpty: true,
       );
 
-      // Create updated patient (keeping old values if not changed)
-      final updatedPatient = await _patientService.getPatientById(id);
-      // In real implementation, you'd need to recreate the patient object
-      // with new values. For simplicity, showing the concept.
+      // Medical history update
+      final updateMedHistory = InputValidator.readConfirmation(
+        'Update Medical History? Current: ${patient.medicalHistory ?? 'None'}',
+      );
+      String? newMedicalHistory = patient.medicalHistory;
+      if (updateMedHistory) {
+        newMedicalHistory = InputValidator.readString(
+          'New Medical History (or press Enter to clear)',
+          allowEmpty: true,
+        );
+        if (newMedicalHistory.isEmpty) {
+          newMedicalHistory = null;
+        }
+      }
 
-      ConsoleHelper.printInfo(
-        'Update feature: Modify patient properties and save',
+      // Create updated patient object
+      final updatedPatient = Patient(
+        id: patient.id,
+        name: newName.isEmpty ? patient.name : newName,
+        age: newAge,
+        gender: newGender,
+        phoneNumber: newPhone.isEmpty ? patient.phoneNumber : newPhone,
+        address: newAddress.isEmpty ? patient.address : newAddress,
+        medicalHistory: newMedicalHistory,
+        registrationDate: patient.registrationDate,
       );
-      ConsoleHelper.printWarning(
-        'Full implementation requires recreating patient object',
-      );
+
+      // Confirm update
+      if (InputValidator.readConfirmation('Confirm update?')) {
+        await _patientService.updatePatient(updatedPatient);
+
+        ConsoleHelper.printSuccess('Patient updated successfully!');
+
+        // Display updated information
+        print('\n══════════════════════════════════════');
+        print('  UPDATED PATIENT INFORMATION');
+        print('══════════════════════════════════════');
+        print('Name: ${updatedPatient.name}');
+        print('Age: ${updatedPatient.age}');
+        print('Gender: ${updatedPatient.gender.displayName}');
+        print('Phone: ${updatedPatient.phoneNumber}');
+        print('Address: ${updatedPatient.address}');
+        print('Medical History: ${updatedPatient.medicalHistory ?? 'None'}');
+        print('══════════════════════════════════════');
+      } else {
+        ConsoleHelper.printInfo('Update cancelled');
+      }
     } catch (e) {
       ConsoleHelper.printError(e.toString());
     }
@@ -349,7 +520,6 @@ class ReceptionistMenu {
     try {
       final id = await _selectPatientByName();
       if (id == null) {
-        ConsoleHelper.printWarning('Operation cancelled');
         ConsoleHelper.pressEnterToContinue();
         return;
       }
@@ -389,14 +559,20 @@ class ReceptionistMenu {
         'Create New Appointment',
         'View All Appointments',
         'View Upcoming Appointments',
-        'View Today\'s Appointments',
+        'Search Appointment by Patient Name',
+        'Search Appointment by Date',
+        'Update Appointment',
         'Cancel Appointment',
         'Complete Appointment',
         'Delete Appointment',
         'Back to Main Menu',
       ]);
 
-      final choice = InputValidator.readChoice('\nEnter your choice', 8);
+      final choice = InputValidator.readChoice(
+        '\nEnter your choice',
+        10,
+        allowZero: false,
+      );
 
       switch (choice) {
         case 1:
@@ -409,18 +585,24 @@ class ReceptionistMenu {
           await _viewUpcomingAppointments();
           break;
         case 4:
-          await _viewTodaysAppointments();
+          await _searchAppointmentByPatientName();
           break;
         case 5:
-          await _cancelAppointment();
+          await _searchAppointmentByDate();
           break;
         case 6:
-          await _completeAppointment();
+          await _updateAppointment();
           break;
         case 7:
-          await _deleteAppointment();
+          await _cancelAppointment();
           break;
         case 8:
+          await _completeAppointment();
+          break;
+        case 9:
+          await _deleteAppointment();
+          break;
+        case 10:
           return;
       }
     }
@@ -435,7 +617,6 @@ class ReceptionistMenu {
       print('\n--- Select Patient ---');
       final patientId = await _selectPatientByName();
       if (patientId == null) {
-        ConsoleHelper.printWarning('Operation cancelled');
         ConsoleHelper.pressEnterToContinue();
         return;
       }
@@ -444,7 +625,6 @@ class ReceptionistMenu {
       print('\n--- Select Doctor ---');
       final doctorId = await _selectDoctorByName();
       if (doctorId == null) {
-        ConsoleHelper.printWarning('Operation cancelled');
         ConsoleHelper.pressEnterToContinue();
         return;
       }
@@ -452,11 +632,21 @@ class ReceptionistMenu {
       final appointmentDate = InputValidator.readDateTime(
         'Appointment Date & Time',
       );
+
+      // Select room by type
+      print('\n--- Select Room for Appointment ---');
+      final roomId = await _selectRoomByType();
+      if (roomId == null) {
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
+
       final reason = InputValidator.readString('Reason for Visit');
 
       final appointment = await _appointmentService.createAppointment(
         patientId: patientId,
         doctorId: doctorId,
+        roomId: roomId,
         appointmentDate: appointmentDate,
         reason: reason,
       );
@@ -466,6 +656,14 @@ class ReceptionistMenu {
       ConsoleHelper.printInfo(
         'Date: ${ConsoleHelper.formatDateTime(appointment.appointmentDate)}',
       );
+
+      // Show room information
+      final room = await _roomService.getRoomById(roomId);
+      if (room != null) {
+        ConsoleHelper.printInfo(
+          'Room: ${room.roomNumber} (${room.type.displayName})',
+        );
+      }
     } catch (e) {
       ConsoleHelper.printError(e.toString());
     }
@@ -484,20 +682,30 @@ class ReceptionistMenu {
         ConsoleHelper.printInfo('No appointments found');
       } else {
         ConsoleHelper.printTableHeader(
-          ['ID', 'Patient ID', 'Doctor ID', 'Date', 'Status'],
-          [15, 15, 15, 18, 12],
+          ['ID', 'Patient Name', 'Doctor Name', 'Room', 'Date', 'Status'],
+          [20, 25, 25, 10, 18, 12],
         );
 
         for (var apt in appointments) {
+          // Get patient and doctor names
+          final patient = await _patientService.getPatientById(apt.patientId);
+          final doctor = await _doctorService.getDoctorById(apt.doctorId);
+          final room = await _roomService.getRoomById(apt.roomId);
+
+          final patientName = patient?.name ?? 'Unknown';
+          final doctorName = doctor != null ? 'Dr. ${doctor.name}' : 'Unknown';
+          final roomNumber = room?.roomNumber ?? 'N/A';
+
           ConsoleHelper.printTableRow(
             [
               apt.id,
-              apt.patientId,
-              apt.doctorId,
+              patientName,
+              doctorName,
+              roomNumber,
               ConsoleHelper.formatDateTime(apt.appointmentDate),
               apt.status.displayName,
             ],
-            [15, 15, 15, 18, 12],
+            [20, 25, 25, 10, 18, 12],
           );
         }
 
@@ -521,20 +729,30 @@ class ReceptionistMenu {
         ConsoleHelper.printInfo('No upcoming appointments');
       } else {
         ConsoleHelper.printTableHeader(
-          ['ID', 'Patient', 'Doctor', 'Date & Time', 'Reason'],
-          [15, 15, 15, 18, 25],
+          ['ID', 'Patient', 'Doctor', 'Room', 'Date & Time', 'Reason'],
+          [20, 20, 20, 10, 18, 30],
         );
 
         for (var apt in appointments) {
+          // Get patient and doctor names
+          final patient = await _patientService.getPatientById(apt.patientId);
+          final doctor = await _doctorService.getDoctorById(apt.doctorId);
+          final room = await _roomService.getRoomById(apt.roomId);
+
+          final patientName = patient?.name ?? 'Unknown';
+          final doctorName = doctor != null ? 'Dr. ${doctor.name}' : 'Unknown';
+          final roomNumber = room?.roomNumber ?? 'N/A';
+
           ConsoleHelper.printTableRow(
             [
               apt.id,
-              apt.patientId,
-              apt.doctorId,
+              patientName,
+              doctorName,
+              roomNumber,
               ConsoleHelper.formatDateTime(apt.appointmentDate),
               apt.reason,
             ],
-            [15, 15, 15, 18, 25],
+            [20, 20, 20, 10, 18, 30],
           );
         }
 
@@ -547,32 +765,298 @@ class ReceptionistMenu {
     ConsoleHelper.pressEnterToContinue();
   }
 
-  Future<void> _viewTodaysAppointments() async {
+  Future<void> _searchAppointmentByPatientName() async {
     ConsoleHelper.clearScreen();
-    ConsoleHelper.printSection('Today\'s Appointments');
+    ConsoleHelper.printSection('Search Appointment by Patient Name');
 
     try {
-      final appointments = await _appointmentService.getTodaysAppointments();
+      final name = InputValidator.readString('Enter patient name to search');
+      final patients = await _patientService.searchPatientsByName(name);
 
-      if (appointments.isEmpty) {
-        ConsoleHelper.printInfo('No appointments today');
+      if (patients.isEmpty) {
+        ConsoleHelper.printError('No patients found with that name');
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
+
+      // Get all appointments for found patients
+      List<dynamic> foundAppointments = [];
+      for (var patient in patients) {
+        final appointments = await _appointmentService.getAppointmentsByPatient(
+          patient.id,
+        );
+        foundAppointments.addAll(appointments);
+      }
+
+      if (foundAppointments.isEmpty) {
+        ConsoleHelper.printInfo(
+          'No appointments found for patients with that name',
+        );
       } else {
         ConsoleHelper.printTableHeader(
-          ['ID', 'Patient', 'Doctor', 'Time', 'Status'],
-          [15, 15, 15, 10, 12],
+          ['ID', 'Patient', 'Doctor', 'Room', 'Date', 'Status'],
+          [20, 20, 20, 10, 18, 12],
         );
 
-        for (var apt in appointments) {
-          final time =
-              '${apt.appointmentDate.hour.toString().padLeft(2, '0')}:'
-              '${apt.appointmentDate.minute.toString().padLeft(2, '0')}';
+        for (var apt in foundAppointments) {
+          final patient = await _patientService.getPatientById(apt.patientId);
+          final doctor = await _doctorService.getDoctorById(apt.doctorId);
+          final room = await _roomService.getRoomById(apt.roomId);
+
+          final patientName = patient?.name ?? 'Unknown';
+          final doctorName = doctor != null ? 'Dr. ${doctor.name}' : 'Unknown';
+          final roomNumber = room?.roomNumber ?? 'N/A';
+
           ConsoleHelper.printTableRow(
-            [apt.id, apt.patientId, apt.doctorId, time, apt.status.displayName],
-            [15, 15, 15, 10, 12],
+            [
+              apt.id,
+              patientName,
+              doctorName,
+              roomNumber,
+              ConsoleHelper.formatDateTime(apt.appointmentDate),
+              apt.status.displayName,
+            ],
+            [20, 20, 20, 10, 18, 12],
           );
         }
 
-        print('\nToday: ${appointments.length}');
+        print('\nFound: ${foundAppointments.length} appointment(s)');
+      }
+    } catch (e) {
+      ConsoleHelper.printError(e.toString());
+    }
+
+    ConsoleHelper.pressEnterToContinue();
+  }
+
+  Future<void> _searchAppointmentByDate() async {
+    ConsoleHelper.clearScreen();
+    ConsoleHelper.printSection('Search Appointment by Date');
+
+    try {
+      final dateStr = InputValidator.readString(
+        'Enter date (YYYY-MM-DD) or just day (DD)',
+      );
+
+      DateTime searchDate;
+
+      // Check if user entered just a day number
+      if (dateStr.length <= 2 && int.tryParse(dateStr) != null) {
+        final now = DateTime.now();
+        final day = int.parse(dateStr);
+        searchDate = DateTime(now.year, now.month, day);
+      } else {
+        // Try to parse full date
+        try {
+          final parts = dateStr.split('-');
+          if (parts.length == 3) {
+            searchDate = DateTime(
+              int.parse(parts[0]),
+              int.parse(parts[1]),
+              int.parse(parts[2]),
+            );
+          } else {
+            ConsoleHelper.printError(
+              'Invalid date format. Use YYYY-MM-DD or DD',
+            );
+            ConsoleHelper.pressEnterToContinue();
+            return;
+          }
+        } catch (e) {
+          ConsoleHelper.printError('Invalid date format');
+          ConsoleHelper.pressEnterToContinue();
+          return;
+        }
+      }
+
+      final allAppointments = await _appointmentService.getAllAppointments();
+      final foundAppointments = allAppointments.where((apt) {
+        final aptDate = apt.appointmentDate;
+        return aptDate.year == searchDate.year &&
+            aptDate.month == searchDate.month &&
+            aptDate.day == searchDate.day;
+      }).toList();
+
+      if (foundAppointments.isEmpty) {
+        ConsoleHelper.printInfo(
+          'No appointments found for ${searchDate.day}/${searchDate.month}/${searchDate.year}',
+        );
+      } else {
+        print(
+          '\nAppointments for ${searchDate.day}/${searchDate.month}/${searchDate.year}:\n',
+        );
+
+        ConsoleHelper.printTableHeader(
+          ['ID', 'Patient', 'Doctor', 'Room', 'Time', 'Status'],
+          [20, 20, 20, 10, 10, 12],
+        );
+
+        for (var apt in foundAppointments) {
+          final patient = await _patientService.getPatientById(apt.patientId);
+          final doctor = await _doctorService.getDoctorById(apt.doctorId);
+          final room = await _roomService.getRoomById(apt.roomId);
+
+          final patientName = patient?.name ?? 'Unknown';
+          final doctorName = doctor != null ? 'Dr. ${doctor.name}' : 'Unknown';
+          final roomNumber = room?.roomNumber ?? 'N/A';
+
+          final time =
+              '${apt.appointmentDate.hour.toString().padLeft(2, '0')}:'
+              '${apt.appointmentDate.minute.toString().padLeft(2, '0')}';
+
+          ConsoleHelper.printTableRow(
+            [
+              apt.id,
+              patientName,
+              doctorName,
+              roomNumber,
+              time,
+              apt.status.displayName,
+            ],
+            [20, 20, 20, 10, 10, 12],
+          );
+        }
+
+        print('\nFound: ${foundAppointments.length} appointment(s)');
+      }
+    } catch (e) {
+      ConsoleHelper.printError(e.toString());
+    }
+
+    ConsoleHelper.pressEnterToContinue();
+  }
+
+  Future<void> _updateAppointment() async {
+    ConsoleHelper.clearScreen();
+    ConsoleHelper.printSection('Update Appointment');
+
+    try {
+      // Get ALL appointments and filter by scheduled status
+      final allAppointments = await _appointmentService.getAllAppointments();
+      final appointments = allAppointments
+          .where((apt) => apt.status == AppointmentStatus.scheduled)
+          .toList();
+
+      if (appointments.isEmpty) {
+        ConsoleHelper.printInfo('No scheduled appointments to update');
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
+
+      final id = await _selectAppointmentFromList(
+        appointments,
+        'Select appointment to update',
+      );
+
+      if (id == null) {
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
+
+      final appointment = await _appointmentService.getAppointmentById(id);
+      if (appointment == null) {
+        ConsoleHelper.printError('Appointment not found');
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
+
+      // Show current appointment details
+      final patient = await _patientService.getPatientById(
+        appointment.patientId,
+      );
+      final doctor = await _doctorService.getDoctorById(appointment.doctorId);
+      final room = await _roomService.getRoomById(appointment.roomId);
+
+      print('\n══════════════════════════════════════');
+      print('  CURRENT APPOINTMENT DETAILS');
+      print('══════════════════════════════════════');
+      print('Patient: ${patient?.name ?? 'Unknown'}');
+      print('Doctor: ${doctor != null ? 'Dr. ${doctor.name}' : 'Unknown'}');
+      print('Room: ${room?.roomNumber ?? 'N/A'}');
+      print(
+        'Date & Time: ${ConsoleHelper.formatDateTime(appointment.appointmentDate)}',
+      );
+      print('Reason: ${appointment.reason}');
+      print('══════════════════════════════════════\n');
+
+      // Ask what to update
+      print('What would you like to update?');
+      ConsoleHelper.printMenu([
+        'Update Date & Time',
+        'Update Room',
+        'Update Reason',
+        'Update All',
+        'Cancel',
+      ]);
+
+      final updateChoice = InputValidator.readChoice('Select option', 5);
+      if (updateChoice == 5 || updateChoice == 0) {
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
+
+      DateTime newDate = appointment.appointmentDate;
+      String newRoomId = appointment.roomId;
+      String newReason = appointment.reason;
+
+      switch (updateChoice) {
+        case 1: // Update Date & Time
+          newDate = InputValidator.readDateTime('New Appointment Date & Time');
+          break;
+
+        case 2: // Update Room
+          print('\n--- Select New Room ---');
+          final selectedRoomId = await _selectRoomByType();
+          if (selectedRoomId == null) {
+            ConsoleHelper.pressEnterToContinue();
+            return;
+          }
+          newRoomId = selectedRoomId;
+          break;
+
+        case 3: // Update Reason
+          newReason = InputValidator.readString('New Reason for Visit');
+          break;
+
+        case 4: // Update All
+          newDate = InputValidator.readDateTime('New Appointment Date & Time');
+          print('\n--- Select New Room ---');
+          final selectedRoomId = await _selectRoomByType();
+          if (selectedRoomId == null) {
+            ConsoleHelper.pressEnterToContinue();
+            return;
+          }
+          newRoomId = selectedRoomId;
+          newReason = InputValidator.readString('New Reason for Visit');
+          break;
+      }
+
+      if (InputValidator.readConfirmation('Confirm update?')) {
+        // Create updated appointment using reschedule or recreate
+        final updatedAppointment = Appointment(
+          id: appointment.id,
+          patientId: appointment.patientId,
+          doctorId: appointment.doctorId,
+          roomId: newRoomId,
+          appointmentDate: newDate,
+          status: appointment.status,
+          reason: newReason,
+          notes: appointment.notes,
+          createdAt: appointment.createdAt,
+        );
+
+        await _appointmentService.updateAppointment(updatedAppointment);
+        ConsoleHelper.printSuccess('Appointment updated successfully!');
+
+        // Show updated details
+        final updatedRoom = await _roomService.getRoomById(newRoomId);
+        print('\n══════════════════════════════════════');
+        print('  UPDATED APPOINTMENT');
+        print('══════════════════════════════════════');
+        print('Date & Time: ${ConsoleHelper.formatDateTime(newDate)}');
+        print('Room: ${updatedRoom?.roomNumber ?? 'N/A'}');
+        print('Reason: $newReason');
+        print('══════════════════════════════════════');
       }
     } catch (e) {
       ConsoleHelper.printError(e.toString());
@@ -586,9 +1070,23 @@ class ReceptionistMenu {
     ConsoleHelper.printSection('Cancel Appointment');
 
     try {
-      await _viewUpcomingAppointments();
+      final appointments = await _appointmentService.getUpcomingAppointments();
 
-      final id = InputValidator.readString('Enter Appointment ID to cancel');
+      if (appointments.isEmpty) {
+        ConsoleHelper.printInfo('No upcoming appointments to cancel');
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
+
+      final id = await _selectAppointmentFromList(
+        appointments,
+        'Select appointment to cancel',
+      );
+
+      if (id == null) {
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
 
       if (InputValidator.readConfirmation('Are you sure?')) {
         await _appointmentService.cancelAppointment(id);
@@ -606,7 +1104,27 @@ class ReceptionistMenu {
     ConsoleHelper.printSection('Complete Appointment');
 
     try {
-      final id = InputValidator.readString('Enter Appointment ID to complete');
+      // Get ALL appointments and filter by scheduled status
+      final allAppointments = await _appointmentService.getAllAppointments();
+      final appointments = allAppointments
+          .where((apt) => apt.status == AppointmentStatus.scheduled)
+          .toList();
+
+      if (appointments.isEmpty) {
+        ConsoleHelper.printInfo('No scheduled appointments to complete');
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
+
+      final id = await _selectAppointmentFromList(
+        appointments,
+        'Select appointment to complete',
+      );
+
+      if (id == null) {
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
 
       final addNotes = InputValidator.readConfirmation('Add completion notes?');
       String? notes;
@@ -628,9 +1146,23 @@ class ReceptionistMenu {
     ConsoleHelper.printSection('Delete Appointment');
 
     try {
-      await _viewAllAppointments();
+      final appointments = await _appointmentService.getAllAppointments();
 
-      final id = InputValidator.readString('Enter Appointment ID to delete');
+      if (appointments.isEmpty) {
+        ConsoleHelper.printInfo('No appointments to delete');
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
+
+      final id = await _selectAppointmentFromList(
+        appointments,
+        'Select appointment to delete',
+      );
+
+      if (id == null) {
+        ConsoleHelper.pressEnterToContinue();
+        return;
+      }
 
       if (InputValidator.readConfirmation('Are you sure?')) {
         final deleted = await _appointmentService.deleteAppointment(id);

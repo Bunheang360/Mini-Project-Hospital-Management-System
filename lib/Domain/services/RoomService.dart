@@ -67,6 +67,11 @@ class RoomService {
     return _roomRepository.getById(id);
   }
 
+  // Get room by room number
+  Future<Room?> getRoomByRoomNumber(String roomNumber) {
+    return _roomRepository.getByRoomNumber(roomNumber);
+  }
+
   // Get available rooms
   Future<List<Room>> getAvailableRooms() {
     return _roomRepository.getAvailableRooms();

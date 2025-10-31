@@ -26,7 +26,11 @@ class MainMenu {
         'Exit',
       ]);
 
-      final choice = InputValidator.readChoice('\nEnter your choice', 3);
+      final choice = InputValidator.readChoice(
+        '\nEnter your choice',
+        3,
+        allowZero: false,
+      );
 
       if (choice == 3) {
         _exitSystem();

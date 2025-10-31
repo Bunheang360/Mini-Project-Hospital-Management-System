@@ -24,6 +24,7 @@ class AppointmentService {
   Future<Appointment> createAppointment({
     required String patientId,
     required String doctorId,
+    required String roomId,
     required DateTime appointmentDate,
     required String reason,
   }) async {
@@ -49,6 +50,7 @@ class AppointmentService {
       id: _generateId(),
       patientId: patientId,
       doctorId: doctorId,
+      roomId: roomId,
       appointmentDate: appointmentDate,
       status: AppointmentStatus.scheduled,
       reason: reason,
@@ -192,6 +194,7 @@ class AppointmentService {
       id: appointment.id,
       patientId: appointment.patientId,
       doctorId: appointment.doctorId,
+      roomId: appointment.roomId,
       appointmentDate: newDate,
       status: AppointmentStatus.scheduled,
       reason: appointment.reason,
