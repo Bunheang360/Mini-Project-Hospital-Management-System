@@ -3,16 +3,19 @@ import '../enums/AppointmentStatus.dart';
 import '../../Data/Repositories/AppointmentRepository.dart';
 import '../../Data/Repositories/PatientRepository.dart';
 import '../../Data/Repositories/DoctorRepository.dart';
+import '../../Data/Repositories/RoomRepository.dart';
 
 class AppointmentService {
   final AppointmentRepository _appointmentRepository;
   final PatientRepository _patientRepository;
   final DoctorRepository _doctorRepository;
+  final RoomRepository _roomRepository;
 
   AppointmentService(
     this._appointmentRepository,
     this._patientRepository,
     this._doctorRepository,
+    this._roomRepository,
   );
 
   // Generate unique ID
@@ -45,6 +48,12 @@ class AppointmentService {
       throw Exception('Doctor not found');
     }
 
+    // Verify room exists
+    final room = await _roomRepository.getById(roomId);
+    if (room == null) {
+      throw Exception('Room not found');
+    }
+
     // Create appointment
     final appointment = Appointment(
       id: _generateId(),
@@ -62,10 +71,16 @@ class AppointmentService {
       throw ArgumentError('Appointment date cannot be in the past');
     }
 
-    // Check for conflicting appointments
-    final conflicts = await checkDoctorAvailability(doctorId, appointmentDate);
-    if (conflicts.isNotEmpty) {
+    // Check for conflicting appointments with doctor
+    final doctorConflicts = await checkDoctorAvailability(doctorId, appointmentDate);
+    if (doctorConflicts.isNotEmpty) {
       throw Exception('Doctor already has an appointment at this time');
+    }
+
+    // Check for conflicting appointments with room
+    final roomConflicts = await checkRoomAvailability(roomId, appointmentDate);
+    if (roomConflicts.isNotEmpty) {
+      throw Exception('Room is already booked at this time');
     }
 
     // Save to repository
@@ -108,13 +123,38 @@ class AppointmentService {
   // Check doctor availability at specific date/time
   Future<List<Appointment>> checkDoctorAvailability(
     String doctorId,
-    DateTime dateTime,
-  ) async {
+    DateTime dateTime, {
+    String? excludeAppointmentId,
+  }) async {
     final doctorAppointments = await getAppointmentsByDoctor(doctorId);
 
     // Check for appointments within 1 hour window
     return doctorAppointments.where((apt) {
       if (apt.status != AppointmentStatus.scheduled) return false;
+      if (excludeAppointmentId != null && apt.id == excludeAppointmentId) {
+        return false; // Exclude current appointment
+      }
+
+      final diff = apt.appointmentDate.difference(dateTime).abs();
+      return diff.inMinutes < 60; // Within 1 hour
+    }).toList();
+  }
+
+  // Check room availability at specific date/time
+  Future<List<Appointment>> checkRoomAvailability(
+    String roomId,
+    DateTime dateTime, {
+    String? excludeAppointmentId,
+  }) async {
+    final allAppointments = await getAllAppointments();
+
+    // Check for scheduled appointments using this room within 1 hour window
+    return allAppointments.where((apt) {
+      if (apt.status != AppointmentStatus.scheduled) return false;
+      if (apt.roomId != roomId) return false;
+      if (excludeAppointmentId != null && apt.id == excludeAppointmentId) {
+        return false; // Exclude current appointment
+      }
 
       final diff = apt.appointmentDate.difference(dateTime).abs();
       return diff.inMinutes < 60; // Within 1 hour
@@ -130,6 +170,31 @@ class AppointmentService {
 
     if (!appointment.isValidAppointmentDate()) {
       throw ArgumentError('Invalid appointment date');
+    }
+
+    // Check for conflicts if appointment is scheduled
+    if (appointment.status == AppointmentStatus.scheduled) {
+      // Check doctor availability (exclude current appointment)
+      final doctorConflicts = await checkDoctorAvailability(
+        appointment.doctorId,
+        appointment.appointmentDate,
+        excludeAppointmentId: appointment.id,
+      );
+
+      if (doctorConflicts.isNotEmpty) {
+        throw Exception('Doctor already has an appointment at this time');
+      }
+
+      // Check room availability (exclude current appointment)
+      final roomConflicts = await checkRoomAvailability(
+        appointment.roomId,
+        appointment.appointmentDate,
+        excludeAppointmentId: appointment.id,
+      );
+
+      if (roomConflicts.isNotEmpty) {
+        throw Exception('Room is already booked at this time');
+      }
     }
 
     await _appointmentRepository.save(appointment);
@@ -179,14 +244,26 @@ class AppointmentService {
       throw Exception('Only scheduled appointments can be rescheduled');
     }
 
-    // Check doctor availability at new time
-    final conflicts = await checkDoctorAvailability(
+    // Check doctor availability at new time (exclude current appointment)
+    final doctorConflicts = await checkDoctorAvailability(
       appointment.doctorId,
       newDate,
+      excludeAppointmentId: appointment.id,
     );
 
-    if (conflicts.isNotEmpty) {
+    if (doctorConflicts.isNotEmpty) {
       throw Exception('Doctor already has an appointment at this time');
+    }
+
+    // Check room availability at new time (exclude current appointment)
+    final roomConflicts = await checkRoomAvailability(
+      appointment.roomId,
+      newDate,
+      excludeAppointmentId: appointment.id,
+    );
+
+    if (roomConflicts.isNotEmpty) {
+      throw Exception('Room is already booked at this time');
     }
 
     // Create new appointment with new date
