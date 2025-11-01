@@ -62,6 +62,7 @@ class ConsoleApp {
       _appointmentRepository,
       _patientRepository,
       _doctorRepository,
+      _roomRepository,
     );
 
     // Initialize menus
