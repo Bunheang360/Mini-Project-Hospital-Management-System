@@ -44,16 +44,18 @@ class ReceptionistMenu {
     }
 
     // Multiple patients found - let user choose
-    print('\nMultiple patients found:');
-    print('0. Cancel');
+    print('\nMultiple patients found:\n');
     for (int i = 0; i < patients.length; i++) {
       print(
         '${i + 1}. ${patients[i].name} (Age: ${patients[i].age}, Phone: ${patients[i].phoneNumber})',
       );
     }
 
-    final choice = InputValidator.readChoice('Select patient', patients.length);
-    if (choice == 0) return null;
+    final choice = InputValidator.readChoiceOrCancel(
+      'Select patient',
+      patients.length,
+    );
+    if (choice == null) return null;
 
     return patients[choice - 1].id;
   }
@@ -82,22 +84,24 @@ class ReceptionistMenu {
 
     if (doctors.length == 1) {
       ConsoleHelper.printSuccess(
-        'Found: Dr. ${doctors[0].name} (${doctors[0].specialization})',
+        'Found: Dr. ${doctors[0].name} (${doctors[0].specialization}) - Shift: ${doctors[0].shift}',
       );
       return doctors[0].id;
     }
 
     // Multiple doctors found - let user choose
-    print('\nDoctors found:');
-    print('0. Cancel');
+    print('\nDoctors found:\n');
     for (int i = 0; i < doctors.length; i++) {
       print(
-        '${i + 1}. Dr. ${doctors[i].name} - ${doctors[i].specialization} (${doctors[i].yearsOfExperience} years exp.)',
+        '${i + 1}. Dr. ${doctors[i].name} - ${doctors[i].specialization} (${doctors[i].yearsOfExperience} years exp.) - Shift: ${doctors[i].shift}',
       );
     }
 
-    final choice = InputValidator.readChoice('Select doctor', doctors.length);
-    if (choice == 0) return null;
+    final choice = InputValidator.readChoiceOrCancel(
+      'Select doctor',
+      doctors.length,
+    );
+    if (choice == null) return null;
 
     return doctors[choice - 1].id;
   }
@@ -108,16 +112,15 @@ class ReceptionistMenu {
     print('\n--- Select Room Type ---');
     final roomTypes = RoomType.values;
 
-    print('0. Cancel');
     for (int i = 0; i < roomTypes.length; i++) {
       print('${i + 1}. ${roomTypes[i].displayName}');
     }
 
-    final typeChoice = InputValidator.readChoice(
+    final typeChoice = InputValidator.readChoiceOrCancel(
       'Select room type',
       roomTypes.length,
     );
-    if (typeChoice == 0) return null;
+    if (typeChoice == null) return null;
 
     final selectedType = roomTypes[typeChoice - 1];
 
@@ -135,8 +138,7 @@ class ReceptionistMenu {
     }
 
     // Display available rooms
-    print('\n--- Available ${selectedType.displayName} Rooms ---');
-    print('0. Cancel');
+    print('\n--- Available ${selectedType.displayName} Rooms ---\n');
     for (int i = 0; i < rooms.length; i++) {
       final room = rooms[i];
       print(
@@ -144,8 +146,11 @@ class ReceptionistMenu {
       );
     }
 
-    final roomChoice = InputValidator.readChoice('Select room', rooms.length);
-    if (roomChoice == 0) return null;
+    final roomChoice = InputValidator.readChoiceOrCancel(
+      'Select room',
+      rooms.length,
+    );
+    if (roomChoice == null) return null;
 
     return rooms[roomChoice - 1].id;
   }
@@ -160,8 +165,7 @@ class ReceptionistMenu {
       return null;
     }
 
-    print('\n$title:');
-    print('0. Cancel');
+    print('\n$title:\n');
     for (int i = 0; i < appointments.length; i++) {
       final apt = appointments[i];
       // Get patient and doctor names
@@ -179,11 +183,11 @@ class ReceptionistMenu {
       );
     }
 
-    final choice = InputValidator.readChoice(
+    final choice = InputValidator.readChoiceOrCancel(
       'Select appointment',
       appointments.length,
     );
-    if (choice == 0) return null;
+    if (choice == null) return null;
 
     return appointments[choice - 1].id;
   }

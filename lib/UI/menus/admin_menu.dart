@@ -37,19 +37,18 @@ class AdminMenu {
       return null;
     }
 
-    print('\nReceptionists:');
-    print('0. Cancel');
+    print('\nReceptionists:\n');
     for (int i = 0; i < receptionists.length; i++) {
       print(
         '${i + 1}. ${receptionists[i].fullName} (${receptionists[i].username})',
       );
     }
 
-    final choice = InputValidator.readChoice(
+    final choice = InputValidator.readChoiceOrCancel(
       'Select receptionist',
       receptionists.length,
     );
-    if (choice == 0) return null;
+    if (choice == null) return null;
 
     return receptionists[choice - 1].id;
   }
@@ -79,14 +78,16 @@ class AdminMenu {
       return doctors[0].id;
     }
 
-    print('\nDoctors found:');
-    print('0. Cancel');
+    print('\nDoctors found:\n');
     for (int i = 0; i < doctors.length; i++) {
       print('${i + 1}. Dr. ${doctors[i].name} - ${doctors[i].specialization}');
     }
 
-    final choice = InputValidator.readChoice('Select doctor', doctors.length);
-    if (choice == 0) return null;
+    final choice = InputValidator.readChoiceOrCancel(
+      'Select doctor',
+      doctors.length,
+    );
+    if (choice == null) return null;
 
     return doctors[choice - 1].id;
   }
@@ -270,7 +271,7 @@ class AdminMenu {
       ConsoleHelper.printHeader('Manage Doctors');
 
       ConsoleHelper.printMenu([
-        'Create New Doctor',
+        'Create New Doctor (with Login Account)',
         'View All Doctors',
         'Search Doctor by Name',
         'Search Doctor by Specialization',
@@ -286,7 +287,7 @@ class AdminMenu {
 
       switch (choice) {
         case 1:
-          await _createDoctor();
+          await _createDoctorWithAccount();
           break;
         case 2:
           await _viewAllDoctors();
@@ -306,13 +307,37 @@ class AdminMenu {
     }
   }
 
-  Future<void> _createDoctor() async {
+  Future<void> _createDoctorWithAccount() async {
     ConsoleHelper.clearScreen();
-    ConsoleHelper.printSection('Create New Doctor');
+    ConsoleHelper.printSection('Create New Doctor with Login Account');
 
     try {
+      // Step 1: Get doctor profile information
+      ConsoleHelper.printInfo('Step 1: Doctor Profile Information\n');
+
       final name = InputValidator.readString('Doctor Name');
       final specialization = InputValidator.readString('Specialization');
+      final department = InputValidator.readString('Department');
+
+      print('\nSelect Shift:');
+      ConsoleHelper.printMenu([
+        'Morning (8AM-4PM)',
+        'Evening (4PM-12AM)',
+        'Night (12AM-8AM)',
+        'Custom',
+      ]);
+      final shiftChoice = InputValidator.readChoice('Select shift', 4);
+      String shift;
+      if (shiftChoice == 4) {
+        shift = InputValidator.readString('Enter custom shift');
+      } else {
+        shift = [
+          'Morning (8AM-4PM)',
+          'Evening (4PM-12AM)',
+          'Night (12AM-8AM)',
+        ][shiftChoice - 1];
+      }
+
       final phoneNumber = InputValidator.readPhoneNumber('Phone Number');
       final email = InputValidator.readEmail('Email');
 
@@ -327,18 +352,43 @@ class AdminMenu {
         max: 60,
       );
 
+      // Step 2: Create doctor profile
       final doctor = await _doctorService.createDoctor(
         name: name,
         specialization: specialization,
+        department: department,
+        shift: shift,
         phoneNumber: phoneNumber,
         email: email,
         gender: gender,
         yearsOfExperience: experience,
       );
 
-      ConsoleHelper.printSuccess('Doctor created successfully!');
+      ConsoleHelper.printSuccess('\n✓ Doctor profile created successfully!');
       ConsoleHelper.printInfo('ID: ${doctor.id}');
       ConsoleHelper.printInfo('Name: Dr. ${doctor.name}');
+      ConsoleHelper.printInfo('Department: ${doctor.department}');
+      ConsoleHelper.printInfo('Shift: ${doctor.shift}');
+
+      // Step 3: Create login account
+      print('\n');
+      ConsoleHelper.printInfo('Step 2: Create Login Credentials\n');
+
+      final username = InputValidator.readString('Username (min 3 chars)');
+      final password = InputValidator.readPassword('Password (min 6 chars)');
+
+      final doctorUser = await _userService.createDoctorUser(
+        username: username,
+        password: password,
+        fullName: doctor.name,
+        doctorId: doctor.id,
+      );
+
+      ConsoleHelper.printSuccess('\n✓ Doctor account created successfully!');
+      ConsoleHelper.printInfo('Username: ${doctorUser.username}');
+      ConsoleHelper.printInfo(
+        'Dr. ${doctor.name} can now login with these credentials',
+      );
     } catch (e) {
       ConsoleHelper.printError(e.toString());
     }
@@ -357,8 +407,16 @@ class AdminMenu {
         ConsoleHelper.printInfo('No doctors found');
       } else {
         ConsoleHelper.printTableHeader(
-          ['ID', 'Name', 'Specialization', 'Phone', 'Exp'],
-          [20, 25, 25, 15, 5],
+          [
+            'ID',
+            'Name',
+            'Specialization',
+            'Department',
+            'Shift',
+            'Phone',
+            'Exp',
+          ],
+          [20, 20, 20, 15, 18, 15, 5],
         );
 
         for (var doctor in doctors) {
@@ -367,10 +425,12 @@ class AdminMenu {
               doctor.id,
               'Dr. ${doctor.name}',
               doctor.specialization,
+              doctor.department,
+              doctor.shift,
               doctor.phoneNumber,
               '${doctor.yearsOfExperience}y',
             ],
-            [20, 25, 25, 15, 5],
+            [20, 20, 20, 15, 18, 15, 5],
           );
         }
 

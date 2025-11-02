@@ -1,9 +1,7 @@
-// lib/data/storage/json_storage.dart
-
 import 'dart:io';
 import 'dart:convert';
 
-class JsonStorage {
+class JsonStorage {                       //NOTE: AI GENERATED CODE
   final String dataDirectory;
 
   JsonStorage({this.dataDirectory = 'data'});

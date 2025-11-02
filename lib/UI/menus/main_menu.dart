@@ -5,13 +5,20 @@ import '../utils/console_helper.dart';
 import '../utils/input_valid_utils.dart';
 import 'admin_menu.dart';
 import 'receptionist_menu.dart';
+import 'doctor_menu.dart';
 
 class MainMenu {
   final AuthService _authService;
   final AdminMenu _adminMenu;
   final ReceptionistMenu _receptionistMenu;
+  final DoctorMenu _doctorMenu;
 
-  MainMenu(this._authService, this._adminMenu, this._receptionistMenu);
+  MainMenu(
+    this._authService,
+    this._adminMenu,
+    this._receptionistMenu,
+    this._doctorMenu,
+  );
 
   // Display main menu and handle login
   Future<void> show() async {
@@ -23,21 +30,30 @@ class MainMenu {
       ConsoleHelper.printMenu([
         'Login as Admin',
         'Login as Receptionist',
+        'Login as Doctor',
         'Exit',
       ]);
 
       final choice = InputValidator.readChoice(
         '\nEnter your choice',
-        3,
+        4,
         allowZero: false,
       );
 
-      if (choice == 3) {
+      if (choice == 4) {
         _exitSystem();
         return;
       }
 
-      final role = choice == 1 ? UserRole.admin : UserRole.receptionist;
+      UserRole role;
+      if (choice == 1) {
+        role = UserRole.admin;
+      } else if (choice == 2) {
+        role = UserRole.receptionist;
+      } else {
+        role = UserRole.doctor;
+      }
+
       await _handleLogin(role);
     }
   }
@@ -74,8 +90,10 @@ class MainMenu {
       // Route to appropriate menu
       if (role == UserRole.admin) {
         await _adminMenu.show();
-      } else {
+      } else if (role == UserRole.receptionist) {
         await _receptionistMenu.show();
+      } else {
+        await _doctorMenu.show();
       }
 
       // Logout after menu exits

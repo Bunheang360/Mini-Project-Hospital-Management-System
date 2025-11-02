@@ -51,6 +51,9 @@ class AuthService {
   // Check if current user is receptionist
   bool get isReceptionist => _currentUser?.role == UserRole.receptionist;
 
+  // Check if current user is doctor
+  bool get isDoctor => _currentUser?.role == UserRole.doctor;
+
   // Login with username and password
   Future<User?> login(String username, String password) async {
     // Validate input
@@ -104,6 +107,18 @@ class AuthService {
 
   bool canManageAppointments() {
     return isAdmin || isReceptionist;
+  }
+
+  bool canViewOwnAppointments() {
+    return isDoctor;
+  }
+
+  bool canUpdateAppointmentStatus() {
+    return isDoctor || isAdmin || isReceptionist;
+  }
+
+  bool canViewPatientDetails() {
+    return isDoctor || isAdmin || isReceptionist;
   }
 
   // Get permissions description for current user

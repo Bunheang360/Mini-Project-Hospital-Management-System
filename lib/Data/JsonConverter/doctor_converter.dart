@@ -8,6 +8,8 @@ class DoctorConverter {
       'id': doctor.id,
       'name': doctor.name,
       'specialization': doctor.specialization,
+      'department': doctor.department,
+      'shift': doctor.shift,
       'phoneNumber': doctor.phoneNumber,
       'email': doctor.email,
       'gender': doctor.gender.name,
@@ -22,6 +24,8 @@ class DoctorConverter {
       id: json['id'],
       name: json['name'],
       specialization: json['specialization'],
+      department: json['department'] ?? 'General', // Default for old data
+      shift: json['shift'] ?? 'Morning (8AM-4PM)', // Default for old data
       phoneNumber: json['phoneNumber'],
       email: json['email'],
       gender: Gender.fromString(json['gender']),

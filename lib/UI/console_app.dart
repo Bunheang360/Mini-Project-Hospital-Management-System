@@ -13,6 +13,7 @@ import '../Data/Storage/json_storage.dart';
 import 'menus/main_menu.dart';
 import 'menus/admin_menu.dart';
 import 'menus/receptionist_menu.dart';
+import 'menus/doctor_menu.dart';
 
 class ConsoleApp {
   late final JsonStorage _storage;
@@ -35,6 +36,7 @@ class ConsoleApp {
   // Menus
   late final AdminMenu _adminMenu;
   late final ReceptionistMenu _receptionistMenu;
+  late final DoctorMenu _doctorMenu;
   late final MainMenu _mainMenu;
 
   ConsoleApp() {
@@ -83,7 +85,19 @@ class ConsoleApp {
       _roomService,
     );
 
-    _mainMenu = MainMenu(_authService, _adminMenu, _receptionistMenu);
+    _doctorMenu = DoctorMenu(
+      _authService,
+      _doctorService,
+      _appointmentService,
+      _patientService,
+    );
+
+    _mainMenu = MainMenu(
+      _authService,
+      _adminMenu,
+      _receptionistMenu,
+      _doctorMenu,
+    );
   }
 
   Future<void> run() async {

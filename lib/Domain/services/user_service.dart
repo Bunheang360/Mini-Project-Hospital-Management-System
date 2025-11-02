@@ -1,6 +1,7 @@
 import '../models/user.dart';
 import '../models/admin.dart';
 import '../models/receptionist.dart';
+import '../models/doctor_user.dart';
 import '../../Data/Repositories/user_repository.dart';
 
 class UserService {
@@ -115,6 +116,51 @@ class UserService {
     return receptionist;
   }
 
+  // Create new Doctor User (only Admin can do this)
+  Future<DoctorUser> createDoctorUser({
+    required String username,
+    required String password,
+    required String fullName,
+    required String doctorId,
+  }) async {
+    // Validate inputs
+    if (username.isEmpty || username.length < 3) {
+      throw ArgumentError('Username must be at least 3 characters');
+    }
+
+    if (password.isEmpty || password.length < 6) {
+      throw ArgumentError('Password must be at least 6 characters');
+    }
+
+    if (fullName.isEmpty) {
+      throw ArgumentError('Full name cannot be empty');
+    }
+
+    if (doctorId.isEmpty) {
+      throw ArgumentError('Doctor ID cannot be empty');
+    }
+
+    // Check if username already exists
+    if (await _userRepository.usernameExists(username)) {
+      throw Exception('Username already exists');
+    }
+
+    // Create doctor user
+    final doctorUser = DoctorUser(
+      id: _generateId(),
+      username: username,
+      password: password,
+      createdAt: DateTime.now(),
+      fullName: fullName,
+      doctorId: doctorId,
+    );
+
+    // Save to repository
+    await _userRepository.save(doctorUser);
+
+    return doctorUser;
+  }
+
   // Get all users
   Future<List<User>> getAllUsers() {
     return _userRepository.getAll();
@@ -130,6 +176,12 @@ class UserService {
   Future<List<Admin>> getAllAdmins() async {
     final users = await _userRepository.getAll();
     return users.whereType<Admin>().toList();
+  }
+
+  // Get all doctor users
+  Future<List<DoctorUser>> getAllDoctorUsers() async {
+    final users = await _userRepository.getAll();
+    return users.whereType<DoctorUser>().toList();
   }
 
   // Get user by ID

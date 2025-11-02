@@ -76,6 +76,33 @@ class InputValidator {
     return readInt(prompt, min: minChoice, max: maxChoice);
   }
 
+  // Read choice from menu with Enter to cancel (returns null if cancelled)
+  static int? readChoiceOrCancel(String prompt, int maxChoice) {
+    while (true) {
+      stdout.write('$prompt (or press Enter to cancel): ');
+      final input = stdin.readLineSync()?.trim() ?? '';
+
+      // Empty input means cancel
+      if (input.isEmpty) {
+        return null;
+      }
+
+      final number = int.tryParse(input);
+
+      if (number == null) {
+        print('✗ Invalid number. Please enter a valid integer.');
+        continue;
+      }
+
+      if (number < 1 || number > maxChoice) {
+        print('✗ Number must be between 1 and $maxChoice.');
+        continue;
+      }
+
+      return number;
+    }
+  }
+
   // Read yes/no confirmation
   static bool readConfirmation(String prompt) {
     while (true) {

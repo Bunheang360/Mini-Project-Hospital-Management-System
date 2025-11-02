@@ -1,6 +1,7 @@
 enum UserRole {
   admin,
-  receptionist;
+  receptionist,
+  doctor;
 
   String get displayName {
     switch (this) {
@@ -8,6 +9,8 @@ enum UserRole {
         return 'Admin';
       case UserRole.receptionist:
         return 'Receptionist';
+      case UserRole.doctor:
+        return 'Doctor';
     }
   }
 
@@ -17,6 +20,8 @@ enum UserRole {
         return UserRole.admin;
       case 'receptionist':
         return UserRole.receptionist;
+      case 'doctor':
+        return UserRole.doctor;
       default:
         throw ArgumentError('Invalid user role: $role');
     }

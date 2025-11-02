@@ -16,6 +16,8 @@ class DoctorService {
   Future<Doctor> createDoctor({
     required String name,
     required String specialization,
+    required String department,
+    required String shift,
     required String phoneNumber,
     required String email,
     required Gender gender,
@@ -28,6 +30,14 @@ class DoctorService {
 
     if (specialization.isEmpty) {
       throw ArgumentError('Specialization cannot be empty');
+    }
+
+    if (department.isEmpty) {
+      throw ArgumentError('Department cannot be empty');
+    }
+
+    if (shift.isEmpty) {
+      throw ArgumentError('Shift cannot be empty');
     }
 
     if (phoneNumber.isEmpty) {
@@ -52,6 +62,8 @@ class DoctorService {
       id: _generateId(),
       name: name,
       specialization: specialization,
+      department: department,
+      shift: shift,
       phoneNumber: phoneNumber,
       email: email,
       gender: gender,
@@ -66,6 +78,14 @@ class DoctorService {
 
     if (!doctor.isValidPhoneNumber()) {
       throw ArgumentError('Invalid phone number format');
+    }
+
+    if (!doctor.isValidDepartment()) {
+      throw ArgumentError('Invalid department');
+    }
+
+    if (!doctor.isValidShift()) {
+      throw ArgumentError('Invalid shift');
     }
 
     // Save to repository
