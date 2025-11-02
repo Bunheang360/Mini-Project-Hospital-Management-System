@@ -1,5 +1,5 @@
-import '../enums/RoomStatus.dart';
-import '../enums/RoomType.dart';
+import '../enums/room_status.dart';
+import '../enums/room_type.dart';
 
 class Room {
   final String id;

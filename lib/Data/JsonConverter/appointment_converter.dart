@@ -1,5 +1,5 @@
-import '../../Domain/models/Appointment.dart';
-import '../../Domain/enums/AppointmentStatus.dart';
+import '../../Domain/models/appointment.dart';
+import '../../Domain/enums/appointment_status.dart';
 
 class AppointmentConverter {
   // Convert Appointment to JSON

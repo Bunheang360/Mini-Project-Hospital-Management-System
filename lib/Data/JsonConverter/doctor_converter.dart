@@ -1,5 +1,5 @@
-import '../../Domain/models/Doctor.dart';
-import '../../Domain/enums/Gender.dart';
+import '../../Domain/models/doctor.dart';
+import '../../Domain/enums/gender.dart';
 
 class DoctorConverter {
   // Convert Doctor to JSON

@@ -1,6 +1,6 @@
-import '../../Domain/models/Room.dart';
-import '../../Domain/enums/RoomStatus.dart';
-import '../../Domain/enums/RoomType.dart';
+import '../../Domain/models/room.dart';
+import '../../Domain/enums/room_status.dart';
+import '../../Domain/enums/room_type.dart';
 
 class RoomConverter {
   // Convert Room to JSON

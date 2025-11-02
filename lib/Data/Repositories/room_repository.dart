@@ -1,8 +1,8 @@
-import '../../Domain/models/Room.dart';
-import '../../Domain/enums/RoomStatus.dart';
-import '../../Domain/enums/RoomType.dart';
-import '../Storage/JsonStorage.dart';
-import '../JsonConverter/RoomConverter.dart';
+import '../../Domain/models/room.dart';
+import '../../Domain/enums/room_status.dart';
+import '../../Domain/enums/room_type.dart';
+import '../Storage/json_storage.dart';
+import '../JsonConverter/room_converter.dart';
 
 class RoomRepository {
   final JsonStorage _storage;

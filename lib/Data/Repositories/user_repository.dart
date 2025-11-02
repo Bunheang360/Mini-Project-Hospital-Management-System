@@ -1,6 +1,6 @@
-import '../../Domain/models/User.dart';
-import '../Storage/JsonStorage.dart';
-import '../JsonConverter/UserConverter.dart';
+import '../../Domain/models/user.dart';
+import '../Storage/json_storage.dart';
+import '../JsonConverter/user_converter.dart';
 
 class UserRepository {
   final JsonStorage _storage;

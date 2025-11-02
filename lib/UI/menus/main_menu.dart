@@ -1,10 +1,10 @@
 import 'dart:io';
-import '../../Domain/services/AuthService.dart';
-import '../../Domain/enums/UserRole.dart';
-import '../utils/ConsoleHelper.dart';
-import '../utils/InputValidUtils.dart';
-import 'AdminMenu.dart';
-import 'ReceptionistMenu.dart';
+import '../../Domain/services/auth_service.dart';
+import '../../Domain/enums/user_role.dart';
+import '../utils/console_helper.dart';
+import '../utils/input_valid_utils.dart';
+import 'admin_menu.dart';
+import 'receptionist_menu.dart';
 
 class MainMenu {
   final AuthService _authService;

@@ -1,4 +1,4 @@
-import '../enums/Gender.dart';
+import '../enums/gender.dart';
 
 class Doctor {
   final String id;

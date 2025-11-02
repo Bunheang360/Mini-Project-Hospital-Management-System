@@ -1,7 +1,7 @@
-import '../../Domain/models/Appointment.dart';
-import '../../Domain/enums/AppointmentStatus.dart';
-import '../Storage/JsonStorage.dart';
-import '../JsonConverter/AppointmentConverter.dart';
+import '../../Domain/models/appointment.dart';
+import '../../Domain/enums/appointment_status.dart';
+import '../Storage/json_storage.dart';
+import '../JsonConverter/appointment_converter.dart';
 
 class AppointmentRepository {
   final JsonStorage _storage;

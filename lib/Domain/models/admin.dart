@@ -1,5 +1,5 @@
-import 'User.dart';
-import '../enums/UserRole.dart';
+import 'user.dart';
+import '../enums/user_role.dart';
 
 class Admin extends User {
   final String fullName;

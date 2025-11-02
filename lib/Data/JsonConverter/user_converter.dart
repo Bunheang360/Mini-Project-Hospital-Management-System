@@ -1,7 +1,7 @@
-import '../../Domain/models/User.dart';
-import '../../Domain/models/Admin.dart';
-import '../../Domain/models/Receptionist.dart';
-import '../../Domain/enums/UserRole.dart';
+import '../../Domain/models/user.dart';
+import '../../Domain/models/admin.dart';
+import '../../Domain/models/receptionist.dart';
+import '../../Domain/enums/user_role.dart';
 
 class UserConverter {
   // Convert User (Admin or Receptionist) to JSON

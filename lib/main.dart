@@ -1,4 +1,4 @@
-import 'UI/ConsoleApp.dart';
+import 'UI/console_app.dart';
 
 void main() async {
   final app = ConsoleApp();

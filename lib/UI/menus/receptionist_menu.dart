@@ -1,15 +1,15 @@
-import '../../Domain/services/AuthService.dart';
-import '../../Domain/services/PatientService.dart';
-import '../../Domain/services/AppointmentService.dart';
-import '../../Domain/services/DoctorService.dart';
-import '../../Domain/services/RoomService.dart';
-import '../../Domain/models/Appointment.dart';
-import '../../Domain/models/Patient.dart';
-import '../../Domain/enums/Gender.dart';
-import '../../Domain/enums/RoomType.dart';
-import '../../Domain/enums/AppointmentStatus.dart';
-import '../utils/ConsoleHelper.dart';
-import '../utils/InputValidUtils.dart';
+import '../../Domain/services/auth_service.dart';
+import '../../Domain/services/patient_service.dart';
+import '../../Domain/services/appointment_service.dart';
+import '../../Domain/services/doctor_service.dart';
+import '../../Domain/services/room_service.dart';
+import '../../Domain/models/appointment.dart';
+import '../../Domain/models/patient.dart';
+import '../../Domain/enums/gender.dart';
+import '../../Domain/enums/room_type.dart';
+import '../../Domain/enums/appointment_status.dart';
+import '../utils/console_helper.dart';
+import '../utils/input_valid_utils.dart';
 
 class ReceptionistMenu {
   final AuthService _authService;

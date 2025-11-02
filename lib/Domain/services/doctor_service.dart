@@ -1,6 +1,6 @@
-import '../models/Doctor.dart';
-import '../enums/Gender.dart';
-import '../../Data/Repositories/DoctorRepository.dart';
+import '../models/doctor.dart';
+import '../enums/gender.dart';
+import '../../Data/Repositories/doctor_repository.dart';
 
 class DoctorService {
   final DoctorRepository _doctorRepository;

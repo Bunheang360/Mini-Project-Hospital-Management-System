@@ -1,6 +1,6 @@
-import '../../Domain/models/Patient.dart';
-import '../Storage/JsonStorage.dart';
-import '../JsonConverter/PatientConverter.dart';
+import '../../Domain/models/patient.dart';
+import '../Storage/json_storage.dart';
+import '../JsonConverter/patient_converter.dart';
 
 class PatientRepository {
   final JsonStorage _storage;

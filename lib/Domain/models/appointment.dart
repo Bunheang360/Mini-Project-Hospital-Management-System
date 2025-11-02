@@ -1,4 +1,4 @@
-import '../enums/AppointmentStatus.dart';
+import '../enums/appointment_status.dart';
 
 class Appointment {
   final String id;

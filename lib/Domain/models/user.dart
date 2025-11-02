@@ -1,4 +1,4 @@
-import '../enums/UserRole.dart';
+import '../enums/user_role.dart';
 
 abstract class User {
   final String id;

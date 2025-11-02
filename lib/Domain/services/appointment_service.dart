@@ -1,9 +1,9 @@
-import '../models/Appointment.dart';
-import '../enums/AppointmentStatus.dart';
-import '../../Data/Repositories/AppointmentRepository.dart';
-import '../../Data/Repositories/PatientRepository.dart';
-import '../../Data/Repositories/DoctorRepository.dart';
-import '../../Data/Repositories/RoomRepository.dart';
+import '../models/appointment.dart';
+import '../enums/appointment_status.dart';
+import '../../Data/Repositories/appointment_repository.dart';
+import '../../Data/Repositories/patient_repository.dart';
+import '../../Data/Repositories/doctor_repository.dart';
+import '../../Data/Repositories/room_repository.dart';
 
 class AppointmentService {
   final AppointmentRepository _appointmentRepository;
