@@ -8,9 +8,32 @@ class JsonStorage {
 
   JsonStorage({this.dataDirectory = 'data'});
 
-  // Ensure data directory exists
+  // Get the storage directory path (lib/Data/Storage)
+  String _getStorageDirectory() {
+    // Get the directory where this file is located
+    final scriptPath = Platform.script.toFilePath();
+    final File scriptFile = File(scriptPath);
+
+    // Navigate to lib/Data/Storage directory
+    // From the script location, go up to find the lib folder
+    Directory current = scriptFile.parent;
+
+    // Find the lib directory
+    while (current.path != current.parent.path) {
+      if (current.path.endsWith('lib')) {
+        break;
+      }
+      current = current.parent;
+    }
+
+    // Return path to lib/Data/Storage
+    return '${current.path}${Platform.pathSeparator}Data${Platform.pathSeparator}Storage';
+  }
+
+  // Ensure data directory exists (not needed since we're using existing lib/Data/Storage)
   Future<void> _ensureDirectoryExists() async {
-    final dir = Directory(dataDirectory);
+    final dirPath = _getStorageDirectory();
+    final dir = Directory(dirPath);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
@@ -18,7 +41,7 @@ class JsonStorage {
 
   // Get full file path
   String _getFilePath(String fileName) {
-    return '$dataDirectory/$fileName';
+    return '${_getStorageDirectory()}${Platform.pathSeparator}$fileName';
   }
 
   // Read JSON file and return as List<Map<String, dynamic>>
@@ -55,7 +78,10 @@ class JsonStorage {
   }
 
   // Write List<Map<String, dynamic>> to JSON file
-  Future<void> writeJsonFile(String fileName, List<Map<String, dynamic>> data) async {
+  Future<void> writeJsonFile(
+    String fileName,
+    List<Map<String, dynamic>> data,
+  ) async {
     await _ensureDirectoryExists();
 
     final file = File(_getFilePath(fileName));
