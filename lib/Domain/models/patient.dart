@@ -7,7 +7,7 @@ class Patient {
   final Gender gender;
   final String phoneNumber;
   final String address;
-  final String? medicalHistory; // Optional
+  final String? medicalHistory;
   final DateTime registrationDate;
 
   Patient({
@@ -43,8 +43,8 @@ class Patient {
     return '$name (${gender.displayName}, $age years) - $phoneNumber';
   }
 
-  // Helper method to check if patient is a minor
-  bool isMinor() {
+  // Helper method to check if patient is a kid
+  bool isKid() {
     return age < 18;
   }
 

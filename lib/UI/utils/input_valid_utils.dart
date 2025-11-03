@@ -25,17 +25,17 @@ class InputValidator {
       final number = int.tryParse(input);
 
       if (number == null) {
-        print('✗ Invalid number. Please enter a valid integer.');
+        print('\nInvalid number. Please enter a valid integer.');
         continue;
       }
 
       if (min != null && number < min) {
-        print('✗ Number must be at least $min.');
+        print('\nNumber must be at least $min.');
         continue;
       }
 
       if (max != null && number > max) {
-        print('✗ Number must be at most $max.');
+        print('\nNumber must be at most $max.');
         continue;
       }
 
@@ -52,17 +52,17 @@ class InputValidator {
       final number = double.tryParse(input);
 
       if (number == null) {
-        print('✗ Invalid number. Please enter a valid number.');
+        print('\nInvalid number. Please enter a valid number.');
         continue;
       }
 
       if (min != null && number < min) {
-        print('✗ Number must be at least $min.');
+        print('\nNumber must be at least $min.');
         continue;
       }
 
       if (max != null && number > max) {
-        print('✗ Number must be at most $max.');
+        print('\nNumber must be at most $max.');
         continue;
       }
 
@@ -90,12 +90,12 @@ class InputValidator {
       final number = int.tryParse(input);
 
       if (number == null) {
-        print('✗ Invalid number. Please enter a valid integer.');
+        print('\nInvalid number. Please enter a valid integer.');
         continue;
       }
 
       if (number < 1 || number > maxChoice) {
-        print('✗ Number must be between 1 and $maxChoice.');
+        print('\nNumber must be between 1 and $maxChoice.');
         continue;
       }
 
@@ -114,7 +114,7 @@ class InputValidator {
       } else if (input == 'n' || input == 'no') {
         return false;
       } else {
-        print('✗ Please enter y or n.');
+        print('\nPlease enter y or n.');
       }
     }
   }
@@ -130,7 +130,7 @@ class InputValidator {
         return input;
       }
 
-      print('✗ Invalid email format. Please try again.');
+      print('\nInvalid email format. Please try again.');
     }
   }
 
@@ -146,7 +146,7 @@ class InputValidator {
         return cleanPhone;
       }
 
-      print('✗ Invalid phone number. Please enter 8-15 digits.');
+      print('\nInvalid phone number. Please enter 8-15 digits.');
     }
   }
 
@@ -159,7 +159,7 @@ class InputValidator {
       final parts = input.split('/');
 
       if (parts.length != 3) {
-        print('✗ Invalid format. Use DD/MM/YYYY.');
+        print('\nInvalid format. Use DD/MM/YYYY.');
         continue;
       }
 
@@ -168,7 +168,7 @@ class InputValidator {
       final year = int.tryParse(parts[2]);
 
       if (day == null || month == null || year == null) {
-        print('✗ Invalid date values.');
+        print('\nInvalid date values.');
         continue;
       }
 
@@ -176,7 +176,7 @@ class InputValidator {
         final date = DateTime(year, month, day);
         return date;
       } catch (e) {
-        print('✗ Invalid date. Please try again.');
+        print('\nInvalid date. Please try again.');
       }
     }
   }
@@ -190,7 +190,7 @@ class InputValidator {
       final parts = input.split(' ');
 
       if (parts.length != 2) {
-        print('✗ Invalid format. Use DD/MM/YYYY HH:MM.');
+        print('\nInvalid format. Use DD/MM/YYYY HH:MM.');
         continue;
       }
 
@@ -198,7 +198,7 @@ class InputValidator {
       final timeParts = parts[1].split(':');
 
       if (dateParts.length != 3 || timeParts.length != 2) {
-        print('✗ Invalid format. Use DD/MM/YYYY HH:MM.');
+        print('\nInvalid format. Use DD/MM/YYYY HH:MM.');
         continue;
       }
 
@@ -213,7 +213,7 @@ class InputValidator {
           year == null ||
           hour == null ||
           minute == null) {
-        print('✗ Invalid date/time values.');
+        print('\nInvalid date/time values.');
         continue;
       }
 
@@ -221,7 +221,7 @@ class InputValidator {
         final dateTime = DateTime(year, month, day, hour, minute);
         return dateTime;
       } catch (e) {
-        print('✗ Invalid date/time. Please try again.');
+        print('\nInvalid date/time. Please try again.');
       }
     }
   }
@@ -232,7 +232,7 @@ class InputValidator {
       final password = readString(prompt);
 
       if (password.length < 6) {
-        print('✗ Password must be at least 6 characters.');
+        print('\nPassword must be at least 6 characters.');
         continue;
       }
 
@@ -246,7 +246,7 @@ class InputValidator {
         return password;
       }
 
-      print('✗ Passwords do not match. Please try again.');
+      print('\nPasswords do not match. Please try again.');
     }
   }
 }

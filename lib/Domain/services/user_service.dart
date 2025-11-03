@@ -14,7 +14,7 @@ class UserService {
     return 'user_${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  // Create new Admin (used for initial setup)
+  // Create new Admin
   Future<Admin> createAdmin({
     required String username,
     required String password,
@@ -64,7 +64,7 @@ class UserService {
     return admin;
   }
 
-  // Create new Receptionist (only Admin can do this)
+  // Create new Receptionist
   Future<Receptionist> createReceptionist({
     required String username,
     required String password,
@@ -116,7 +116,7 @@ class UserService {
     return receptionist;
   }
 
-  // Create new Doctor User (only Admin can do this)
+  // Create new Doctor User
   Future<DoctorUser> createDoctorUser({
     required String username,
     required String password,

@@ -9,7 +9,7 @@ enum RoomType {
       case RoomType.icu:
         return 'ICU (Intensive Care Unit)';
       case RoomType.general:
-        return 'General Ward';
+        return 'General Room';
       case RoomType.private:
         return 'Private Room';
       case RoomType.emergency:

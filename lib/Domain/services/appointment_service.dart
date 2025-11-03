@@ -132,7 +132,7 @@ class AppointmentService {
     return doctorAppointments.where((apt) {
       if (apt.status != AppointmentStatus.scheduled) return false;
       if (excludeAppointmentId != null && apt.id == excludeAppointmentId) {
-        return false; // Exclude current appointment
+        return false;
       }
 
       final diff = apt.appointmentDate.difference(dateTime).abs();
@@ -153,7 +153,7 @@ class AppointmentService {
       if (apt.status != AppointmentStatus.scheduled) return false;
       if (apt.roomId != roomId) return false;
       if (excludeAppointmentId != null && apt.id == excludeAppointmentId) {
-        return false; // Exclude current appointment
+        return false;
       }
 
       final diff = apt.appointmentDate.difference(dateTime).abs();

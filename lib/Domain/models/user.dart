@@ -28,7 +28,7 @@ abstract class User {
     return password.isNotEmpty && password.length >= 6;
   }
 
-  // Abstract method - polymorphism (each subclass implements differently)
+  // Abstract method - polymorphism 
   String getPermissions();
 
   @override

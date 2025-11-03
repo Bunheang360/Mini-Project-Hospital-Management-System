@@ -128,10 +128,10 @@ class PatientService {
     return patients.length;
   }
 
-  // Get minor patients (under 18)
-  Future<List<Patient>> getMinorPatients() async {
+  // Get patients (under 18)
+  Future<List<Patient>> getKidPatients() async {
     final patients = await getAllPatients();
-    return patients.where((patient) => patient.isMinor()).toList();
+    return patients.where((patient) => patient.isKid()).toList();
   }
 
   // Get elderly patients (65+)

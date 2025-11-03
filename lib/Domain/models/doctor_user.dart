@@ -2,7 +2,7 @@ import 'user.dart';
 import '../enums/user_role.dart';
 
 class DoctorUser extends User {
-  final String doctorId; // Reference to the Doctor entity
+  final String doctorId;
   final String fullName;
 
   DoctorUser({
@@ -14,7 +14,6 @@ class DoctorUser extends User {
     required this.fullName,
   }) : super(role: UserRole.doctor);
 
-  // Polymorphic implementation
   @override
   String getPermissions() {
     return 'Doctor Access: View own appointments, Update appointment status, View patient details';

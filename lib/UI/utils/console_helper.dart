@@ -47,22 +47,22 @@ class ConsoleHelper {
 
   // Print success message
   static void printSuccess(String message) {
-    print('✓ SUCCESS: $message');
+    print('\nSUCCESS: $message');
   }
 
   // Print error message
   static void printError(String message) {
-    print('✗ ERROR: $message');
+    print('\ERROR: $message');
   }
 
   // Print info message
   static void printInfo(String message) {
-    print('ℹ INFO: $message');
+    print('\nINFO: $message');
   }
 
   // Print warning message
   static void printWarning(String message) {
-    print('⚠ WARNING: $message');
+    print('\nWARNING: $message');
   }
 
   // Print menu options

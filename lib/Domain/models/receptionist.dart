@@ -4,7 +4,7 @@ import '../enums/user_role.dart';
 class Receptionist extends User {
   final String fullName;
   final String phoneNumber;
-  final String createdBy; // Admin ID who created this receptionist
+  final String createdBy;
 
   Receptionist({
     required super.id,
@@ -16,7 +16,6 @@ class Receptionist extends User {
     required this.createdBy,
   }) : super(role: UserRole.receptionist);
 
-  // Polymorphic implementation
   @override
   String getPermissions() {
     return 'Limited Access: Manage Patients and Appointments only';

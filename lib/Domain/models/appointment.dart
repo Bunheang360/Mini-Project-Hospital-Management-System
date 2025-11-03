@@ -4,11 +4,11 @@ class Appointment {
   final String id;
   final String patientId;
   final String doctorId;
-  final String roomId; // Room where appointment will take place
+  final String roomId;
   final DateTime appointmentDate;
   AppointmentStatus status;
   final String reason;
-  String? notes; // Optional notes added by doctor
+  String? notes;
   final DateTime createdAt;
 
   Appointment({
@@ -41,7 +41,7 @@ class Appointment {
         appointmentDay.isAfter(today);
   }
 
-  // Business logic methods
+  // methods
   bool canBeCancelled() {
     return status == AppointmentStatus.scheduled;
   }
@@ -71,8 +71,7 @@ class Appointment {
     if (status != AppointmentStatus.scheduled) {
       throw StateError('Only scheduled appointments can be rescheduled');
     }
-    // Note: In a real system, you'd create a new appointment
-    // For simplicity, we're just updating the date here
+    // Note: In a real system, you'd create a new appointment. For simplicity, we're just updating the date here
   }
 
   bool isPast() {

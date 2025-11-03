@@ -8,7 +8,7 @@ class Room {
   RoomStatus status;
   final int bedCount;
   final double pricePerDay;
-  String? currentPatientId; // Null if not occupied
+  String? currentPatientId;
   final DateTime createdAt;
 
   Room({
@@ -35,7 +35,7 @@ class Room {
     return pricePerDay >= 0;
   }
 
-  // Business logic methods
+  //methods
   bool isAvailable() {
     return status == RoomStatus.available && currentPatientId == null;
   }

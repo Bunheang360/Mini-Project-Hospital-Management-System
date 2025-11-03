@@ -14,7 +14,6 @@ class Admin extends User {
     required this.email,
   }) : super(role: UserRole.admin);
 
-  // Polymorphic implementation
   @override
   String getPermissions() {
     return 'Full Access: Manage Receptionists, Doctors, Rooms, Patients, Appointments';

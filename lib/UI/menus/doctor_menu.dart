@@ -318,7 +318,7 @@ class DoctorMenu {
           (a, b) => b.appointmentDate.compareTo(a.appointmentDate),
         );
 
-        print('\n📋 Appointment History with you:');
+        print('\nAppointment History with you:');
         print('─────────────────────────────────────');
         for (var apt in patientAppointments) {
           final dateStr = ConsoleHelper.formatDate(apt.appointmentDate);
@@ -333,7 +333,7 @@ class DoctorMenu {
         print('─────────────────────────────────────');
         print('Total appointments: ${patientAppointments.length}');
       } else {
-        print('\nℹ️  No appointment history with this patient');
+        print('\nNo appointment history with this patient');
       }
     } catch (e) {
       ConsoleHelper.printError(e.toString());

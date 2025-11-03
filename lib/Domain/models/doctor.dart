@@ -5,8 +5,7 @@ class Doctor {
   final String name;
   final String specialization;
   final String department;
-  final String
-  shift; // e.g., "Morning (8AM-4PM)", "Evening (4PM-12AM)", "Night (12AM-8AM)"
+  final String shift;
   final String phoneNumber;
   final String email;
   final Gender gender;
