@@ -1,7 +1,7 @@
-import '../../Domain/services/auth_service.dart';
-import '../../Domain/services/doctor_service.dart';
-import '../../Domain/services/appointment_service.dart';
-import '../../Domain/services/patient_service.dart';
+import '../../Service/auth_service.dart';
+import '../../Service/doctor_service.dart';
+import '../../Service/appointment_service.dart';
+import '../../Service/patient_service.dart';
 import '../../Domain/enums/appointment_status.dart';
 import '../../Domain/models/doctor_user.dart';
 import '../utils/console_helper.dart';

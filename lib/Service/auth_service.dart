@@ -1,7 +1,7 @@
-import '../models/user.dart';
-import '../models/admin.dart';
-import '../enums/user_role.dart';
-import '../../Data/Repositories/user_repository.dart';
+import '../Domain/models/user.dart';
+import '../Domain/models/admin.dart';
+import '../Domain/enums/user_role.dart';
+import '../Data/Repositories/user_repository.dart';
 
 class AuthService {
   final UserRepository _userRepository;

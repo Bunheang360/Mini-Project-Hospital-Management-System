@@ -1,8 +1,8 @@
-import '../models/room.dart';
-import '../enums/room_status.dart';
-import '../enums/room_type.dart';
-import '../../Data/Repositories/room_repository.dart';
-import '../../Data/Repositories/patient_repository.dart';
+import '../Domain/models/room.dart';
+import '../Domain/enums/room_status.dart';
+import '../Domain/enums/room_type.dart';
+import '../Data/Repositories/room_repository.dart';
+import '../Data/Repositories/patient_repository.dart';
 
 class RoomService {
   final RoomRepository _roomRepository;

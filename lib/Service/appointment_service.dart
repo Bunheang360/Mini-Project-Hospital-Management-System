@@ -1,9 +1,9 @@
-import '../models/appointment.dart';
-import '../enums/appointment_status.dart';
-import '../../Data/Repositories/appointment_repository.dart';
-import '../../Data/Repositories/patient_repository.dart';
-import '../../Data/Repositories/doctor_repository.dart';
-import '../../Data/Repositories/room_repository.dart';
+import '../Domain/models/appointment.dart';
+import '../Domain/enums/appointment_status.dart';
+import '../Data/Repositories/appointment_repository.dart';
+import '../Data/Repositories/patient_repository.dart';
+import '../Data/Repositories/doctor_repository.dart';
+import '../Data/Repositories/room_repository.dart';
 
 class AppointmentService {
   final AppointmentRepository _appointmentRepository;
@@ -72,7 +72,10 @@ class AppointmentService {
     }
 
     // Check for conflicting appointments with doctor
-    final doctorConflicts = await checkDoctorAvailability(doctorId, appointmentDate);
+    final doctorConflicts = await checkDoctorAvailability(
+      doctorId,
+      appointmentDate,
+    );
     if (doctorConflicts.isNotEmpty) {
       throw Exception('Doctor already has an appointment at this time');
     }

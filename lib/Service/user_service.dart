@@ -1,8 +1,8 @@
-import '../models/user.dart';
-import '../models/admin.dart';
-import '../models/receptionist.dart';
-import '../models/doctor_user.dart';
-import '../../Data/Repositories/user_repository.dart';
+import '../Domain/models/user.dart';
+import '../Domain/models/admin.dart';
+import '../Domain/models/receptionist.dart';
+import '../Domain/models/doctor_user.dart';
+import '../Data/Repositories/user_repository.dart';
 
 class UserService {
   final UserRepository _userRepository;

@@ -1,8 +1,8 @@
-import '../../Domain/services/auth_service.dart';
-import '../../Domain/services/patient_service.dart';
-import '../../Domain/services/appointment_service.dart';
-import '../../Domain/services/doctor_service.dart';
-import '../../Domain/services/room_service.dart';
+import '../../Service/auth_service.dart';
+import '../../Service/patient_service.dart';
+import '../../Service/appointment_service.dart';
+import '../../Service/doctor_service.dart';
+import '../../Service/room_service.dart';
 import '../../Domain/models/appointment.dart';
 import '../../Domain/models/patient.dart';
 import '../../Domain/enums/gender.dart';

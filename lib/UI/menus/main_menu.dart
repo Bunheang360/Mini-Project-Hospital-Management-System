@@ -1,5 +1,5 @@
 import 'dart:io';
-import '../../Domain/services/auth_service.dart';
+import '../../Service/auth_service.dart';
 import '../../Domain/enums/user_role.dart';
 import '../utils/console_helper.dart';
 import '../utils/input_valid_utils.dart';
