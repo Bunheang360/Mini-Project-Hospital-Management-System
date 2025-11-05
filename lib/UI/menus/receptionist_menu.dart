@@ -84,7 +84,7 @@ class ReceptionistMenu {
 
     if (doctors.length == 1) {
       ConsoleHelper.printSuccess(
-        'Found: Dr. ${doctors[0].name} (${doctors[0].specialization}) - Shift: ${doctors[0].shift}',
+        'Found: Dr. ${doctors[0].name} (${doctors[0].specialization}) - Shift: ${doctors[0].shift.displayName}',
       );
       return doctors[0].id;
     }
@@ -93,7 +93,7 @@ class ReceptionistMenu {
     print('\nDoctors found:\n');
     for (int i = 0; i < doctors.length; i++) {
       print(
-        '${i + 1}. Dr. ${doctors[i].name} - ${doctors[i].specialization} (${doctors[i].yearsOfExperience} years exp.) - Shift: ${doctors[i].shift}',
+        '${i + 1}. Dr. ${doctors[i].name} - ${doctors[i].specialization} (${doctors[i].yearsOfExperience} years exp.) - Shift: ${doctors[i].shift.displayName}',
       );
     }
 

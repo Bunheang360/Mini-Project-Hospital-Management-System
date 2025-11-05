@@ -40,7 +40,7 @@ class DoctorMenu {
 
       print('Logged in as: Dr. ${doctor.name}');
       print('Department: ${doctor.department}');
-      print('Shift: ${doctor.shift}\n');
+      print('Shift: ${doctor.shift.displayName}\n');
 
       ConsoleHelper.printMenu([
         'View My Appointments',

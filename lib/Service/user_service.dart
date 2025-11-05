@@ -2,6 +2,7 @@ import '../Domain/models/user.dart';
 import '../Domain/models/admin.dart';
 import '../Domain/models/receptionist.dart';
 import '../Domain/models/doctor_user.dart';
+import '../Domain/enums/shift.dart';
 import '../Data/Repositories/user_repository.dart';
 
 class UserService {
@@ -71,6 +72,7 @@ class UserService {
     required String fullName,
     required String phoneNumber,
     required String createdByAdminId,
+    required Shift shift,
   }) async {
     // Validate inputs
     if (username.isEmpty || username.length < 3) {
@@ -103,6 +105,7 @@ class UserService {
       fullName: fullName,
       phoneNumber: phoneNumber,
       createdBy: createdByAdminId,
+      shift: shift,
     );
 
     // Validate phone number

@@ -1,5 +1,6 @@
 import '../Domain/models/doctor.dart';
 import '../Domain/enums/gender.dart';
+import '../Domain/enums/shift.dart';
 import '../Data/Repositories/doctor_repository.dart';
 
 class DoctorService {
@@ -17,7 +18,7 @@ class DoctorService {
     required String name,
     required String specialization,
     required String department,
-    required String shift,
+    required Shift shift,
     required String phoneNumber,
     required String email,
     required Gender gender,
@@ -36,9 +37,7 @@ class DoctorService {
       throw ArgumentError('Department cannot be empty');
     }
 
-    if (shift.isEmpty) {
-      throw ArgumentError('Shift cannot be empty');
-    }
+    // Shift is now an enum, so no validation needed
 
     if (phoneNumber.isEmpty) {
       throw ArgumentError('Phone number cannot be empty');

@@ -1,11 +1,12 @@
 import '../enums/gender.dart';
+import '../enums/shift.dart';
 
 class Doctor {
   final String id;
   final String name;
   final String specialization;
   final String department;
-  final String shift;
+  final Shift shift;
   final String phoneNumber;
   final String email;
   final Gender gender;
@@ -51,17 +52,17 @@ class Doctor {
   }
 
   bool isValidShift() {
-    return shift.isNotEmpty;
+    return true; // Always valid since it's an enum
   }
 
   String getDisplayInfo() {
-    return 'Dr. $name - $specialization, $department ($shift) (${yearsOfExperience} years exp.)';
+    return 'Dr. $name - $specialization, $department (${shift.displayName}) (${yearsOfExperience} years exp.)';
   }
 
   @override
   String toString() {
     return 'Doctor(id: $id, name: $name, specialization: $specialization, '
-        'department: $department, shift: $shift, '
+        'department: $department, shift: ${shift.displayName}, '
         'gender: ${gender.displayName}, experience: $yearsOfExperience years)';
   }
 

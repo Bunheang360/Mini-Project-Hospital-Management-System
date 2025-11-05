@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hbs_mini_project/Domain/models/patient.dart';
 import 'package:hbs_mini_project/Domain/enums/gender.dart';
+import 'package:hbs_mini_project/Domain/enums/shift.dart';
 import 'package:hbs_mini_project/Domain/enums/appointment_status.dart';
 import 'package:hbs_mini_project/Domain/enums/room_type.dart';
 import 'package:hbs_mini_project/Domain/enums/room_status.dart';
@@ -122,7 +123,7 @@ void main() {
         name: 'Dr. Nia',
         specialization: 'Cardiology',
         department: 'Heart Department',
-        shift: 'Morning',
+        shift: Shift.morning,
         phoneNumber: '1111111111',
         email: 'nia@hospital.com',
         gender: Gender.female,
@@ -133,7 +134,7 @@ void main() {
         name: 'Dr. Jay',
         specialization: 'Neurology',
         department: 'Brain Department',
-        shift: 'Evening',
+        shift: Shift.evening,
         phoneNumber: '2222222222',
         email: 'jay@hospital.com',
         gender: Gender.male,
@@ -144,7 +145,7 @@ void main() {
         name: 'Dr. Zane',
         specialization: 'Pediatrics',
         department: 'Children Department',
-        shift: 'Morning',
+        shift: Shift.morning,
         phoneNumber: '3333333333',
         email: 'zane@hospital.com',
         gender: Gender.male,
@@ -229,7 +230,7 @@ void main() {
           name: 'Dr. Wu',
           specialization: 'General Medicine',
           department: 'General Department',
-          shift: 'Morning',
+          shift: Shift.morning,
           phoneNumber: '6666666666',
           email: 'wu@hospital.com',
           gender: Gender.male,
@@ -302,7 +303,7 @@ void main() {
         name: 'Dr. Liz',
         specialization: 'Internal Medicine',
         department: 'General Department',
-        shift: 'Morning',
+        shift: Shift.morning,
         phoneNumber: '9999999999',
         email: 'liz@hospital.com',
         gender: Gender.female,
@@ -432,7 +433,7 @@ void main() {
         name: 'Dr. Test Doctor',
         specialization: 'Surgery',
         department: 'Surgery Department',
-        shift: 'Evening',
+        shift: Shift.evening,
         phoneNumber: '5555555555',
         email: 'test.doctor@hospital.com',
         gender: Gender.male,
@@ -516,7 +517,7 @@ void main() {
           name: 'Dr. Busy Physician',
           specialization: 'Family Medicine',
           department: 'General Department',
-          shift: 'Full Day',
+          shift: Shift.morning,
           phoneNumber: '3030303030',
           email: 'busy.physician@hospital.com',
           gender: Gender.female,
@@ -575,7 +576,7 @@ void main() {
         name: 'Dr. Cancel',
         specialization: 'Dermatology',
         department: 'Skin Department',
-        shift: 'Morning',
+        shift: Shift.morning,
         phoneNumber: '5050505050',
         email: 'cancel@hospital.com',
         gender: Gender.female,
@@ -648,7 +649,7 @@ void main() {
         name: 'Dr. Integration Specialist',
         specialization: 'Endocrinology',
         department: 'Diabetes Care',
-        shift: 'Morning',
+        shift: Shift.morning,
         phoneNumber: '7070707070',
         email: 'integration.specialist@hospital.com',
         gender: Gender.male,

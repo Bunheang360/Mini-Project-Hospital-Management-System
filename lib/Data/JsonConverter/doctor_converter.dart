@@ -1,5 +1,6 @@
 import '../../Domain/models/doctor.dart';
 import '../../Domain/enums/gender.dart';
+import '../../Domain/enums/shift.dart';
 
 class DoctorConverter {
   // Convert Doctor to JSON
@@ -9,7 +10,7 @@ class DoctorConverter {
       'name': doctor.name,
       'specialization': doctor.specialization,
       'department': doctor.department,
-      'shift': doctor.shift,
+      'shift': doctor.shift.name,
       'phoneNumber': doctor.phoneNumber,
       'email': doctor.email,
       'gender': doctor.gender.name,
@@ -25,7 +26,9 @@ class DoctorConverter {
       name: json['name'],
       specialization: json['specialization'],
       department: json['department'] ?? 'General', // Default for old data
-      shift: json['shift'] ?? 'Morning (8AM-4PM)', // Default for old data
+      shift: json['shift'] != null
+          ? Shift.fromString(json['shift'])
+          : Shift.morning, // Default for old data
       phoneNumber: json['phoneNumber'],
       email: json['email'],
       gender: Gender.fromString(json['gender']),

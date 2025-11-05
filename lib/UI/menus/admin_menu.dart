@@ -5,6 +5,7 @@ import '../../Service/room_service.dart';
 import '../../Service/patient_service.dart';
 import '../../Service/appointment_service.dart';
 import '../../Domain/enums/gender.dart';
+import '../../Domain/enums/shift.dart';
 import '../../Domain/enums/room_type.dart';
 import '../utils/console_helper.dart';
 import '../utils/input_valid_utils.dart';
@@ -178,6 +179,16 @@ class AdminMenu {
       final fullName = InputValidator.readString('Full Name');
       final phoneNumber = InputValidator.readPhoneNumber('Phone Number');
 
+      print('\nSelect Shift:');
+      ConsoleHelper.printMenu([
+        'Morning (6:00 AM - 2:00 PM)',
+        'Afternoon (2:00 PM - 10:00 PM)',
+        'Evening (6:00 PM - 2:00 AM)',
+        'Night (10:00 PM - 6:00 AM)',
+      ]);
+      final shiftChoice = InputValidator.readChoice('Select shift', 4);
+      final shift = Shift.values[shiftChoice - 1];
+
       final adminId = _authService.currentUser!.id;
 
       final receptionist = await _userService.createReceptionist(
@@ -186,11 +197,13 @@ class AdminMenu {
         fullName: fullName,
         phoneNumber: phoneNumber,
         createdByAdminId: adminId,
+        shift: shift,
       );
 
       ConsoleHelper.printSuccess('Receptionist created successfully!');
       ConsoleHelper.printInfo('ID: ${receptionist.id}');
       ConsoleHelper.printInfo('Username: ${receptionist.username}');
+      ConsoleHelper.printInfo('Shift: ${receptionist.shift.displayName}');
     } catch (e) {
       ConsoleHelper.printError(e.toString());
     }
@@ -209,8 +222,8 @@ class AdminMenu {
         ConsoleHelper.printInfo('No receptionists found');
       } else {
         ConsoleHelper.printTableHeader(
-          ['ID', 'Username', 'Full Name', 'Phone', 'Created'],
-          [20, 15, 25, 15, 12],
+          ['ID', 'Username', 'Full Name', 'Phone', 'Shift', 'Created'],
+          [20, 15, 20, 18, 30, 12],
         );
 
         for (var receptionist in receptionists) {
@@ -220,9 +233,10 @@ class AdminMenu {
               receptionist.username,
               receptionist.fullName,
               receptionist.phoneNumber,
+              receptionist.shift.displayName,
               ConsoleHelper.formatDate(receptionist.createdAt),
             ],
-            [20, 15, 25, 15, 12],
+            [20, 15, 20, 18, 30, 12],
           );
         }
 
@@ -321,22 +335,13 @@ class AdminMenu {
 
       print('\nSelect Shift:');
       ConsoleHelper.printMenu([
-        'Morning (8AM-4PM)',
-        'Evening (4PM-12AM)',
-        'Night (12AM-8AM)',
-        'Custom',
+        'Morning (6:00 AM - 2:00 PM)',
+        'Afternoon (2:00 PM - 10:00 PM)',
+        'Evening (6:00 PM - 2:00 AM)',
+        'Night (10:00 PM - 6:00 AM)',
       ]);
       final shiftChoice = InputValidator.readChoice('Select shift', 4);
-      String shift;
-      if (shiftChoice == 4) {
-        shift = InputValidator.readString('Enter custom shift');
-      } else {
-        shift = [
-          'Morning (8AM-4PM)',
-          'Evening (4PM-12AM)',
-          'Night (12AM-8AM)',
-        ][shiftChoice - 1];
-      }
+      final shift = Shift.values[shiftChoice - 1];
 
       final phoneNumber = InputValidator.readPhoneNumber('Phone Number');
       final email = InputValidator.readEmail('Email');
@@ -368,7 +373,7 @@ class AdminMenu {
       ConsoleHelper.printInfo('ID: ${doctor.id}');
       ConsoleHelper.printInfo('Name: Dr. ${doctor.name}');
       ConsoleHelper.printInfo('Department: ${doctor.department}');
-      ConsoleHelper.printInfo('Shift: ${doctor.shift}');
+      ConsoleHelper.printInfo('Shift: ${doctor.shift.displayName}');
 
       // Step 3: Create login account
       print('\n');
@@ -426,7 +431,7 @@ class AdminMenu {
               'Dr. ${doctor.name}',
               doctor.specialization,
               doctor.department,
-              doctor.shift,
+              doctor.shift.displayName,
               doctor.phoneNumber,
               '${doctor.yearsOfExperience}y',
             ],

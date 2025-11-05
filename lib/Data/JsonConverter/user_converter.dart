@@ -3,6 +3,7 @@ import '../../Domain/models/admin.dart';
 import '../../Domain/models/receptionist.dart';
 import '../../Domain/models/doctor_user.dart';
 import '../../Domain/enums/user_role.dart';
+import '../../Domain/enums/shift.dart';
 
 class UserConverter {
   // Convert User (Admin or Receptionist or DoctorUser) to JSON
@@ -23,6 +24,7 @@ class UserConverter {
         'fullName': user.fullName,
         'phoneNumber': user.phoneNumber,
         'createdBy': user.createdBy,
+        'shift': user.shift.name,
       };
     } else if (user is DoctorUser) {
       return {...baseMap, 'fullName': user.fullName, 'doctorId': user.doctorId};
@@ -53,6 +55,9 @@ class UserConverter {
         fullName: json['fullName'],
         phoneNumber: json['phoneNumber'],
         createdBy: json['createdBy'],
+        shift: json['shift'] != null
+            ? Shift.fromString(json['shift'])
+            : Shift.morning, // Default for old data
       );
     } else if (role == UserRole.doctor) {
       return DoctorUser(
