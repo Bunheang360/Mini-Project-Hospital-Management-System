@@ -1,47 +1,36 @@
 import '../enums/user_role.dart';
+import '../enums/gender.dart';
 
 abstract class User {
   final String id;
   final String username;
-  final String password;
+  String password;
+  final String name;
+  final Gender gender;
+  final String phone;
+  final String email;
   final UserRole role;
-  final DateTime createdAt;
 
   User({
     required this.id,
     required this.username,
     required this.password,
+    required this.name,
+    required this.gender,
+    required this.phone,
+    required this.email,
     required this.role,
-    required this.createdAt,
   });
 
-  // Validation methods
-  bool validateCredentials(String inputUsername, String inputPassword) {
-    return username == inputUsername && password == inputPassword;
+  Map<String, dynamic> toJson();
+
+  void displayInfo() {
+    print('ID: $id');
+    print('Username: $username');
+    print('Name: $name');
+    print('Gender: ${gender.name}');
+    print('Phone: $phone');
+    print('Email: $email');
+    print('Role: ${role.name}');
   }
-
-  bool isValidUsername() {
-    return username.isNotEmpty && username.length >= 3;
-  }
-
-  bool isValidPassword() {
-    return password.isNotEmpty && password.length >= 6;
-  }
-
-  // Abstract method - polymorphism 
-  String getPermissions();
-
-  @override
-  String toString() {
-    return 'User(id: $id, username: $username, role: ${role.displayName})';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is User && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
 }

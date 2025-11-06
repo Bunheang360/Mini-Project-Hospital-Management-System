@@ -1,108 +1,69 @@
+import '../Data/Repositories/user_repository.dart';
+import '../Data/Repositories/patient_repository.dart';
+import '../Data/Repositories/appointment_repository.dart';
+import '../Data/Repositories/room_repository.dart';
 import '../Service/auth_service.dart';
 import '../Service/user_service.dart';
-import '../Service/doctor_service.dart';
 import '../Service/patient_service.dart';
-import '../Service/room_service.dart';
 import '../Service/appointment_service.dart';
-import '../Data/Repositories/user_repository.dart';
-import '../Data/Repositories/doctor_repository.dart';
-import '../Data/Repositories/patient_repository.dart';
-import '../Data/Repositories/room_repository.dart';
-import '../Data/Repositories/appointment_repository.dart';
-import '../Data/Storage/json_storage.dart';
+import '../Service/room_service.dart';
+import '../Service/statistic_service.dart';
 import 'menus/main_menu.dart';
-import 'menus/admin_menu.dart';
-import 'menus/receptionist_menu.dart';
-import 'menus/doctor_menu.dart';
 
 class ConsoleApp {
-  late final JsonStorage _storage;
-
-  // Repositories
-  late final UserRepository _userRepository;
-  late final DoctorRepository _doctorRepository;
-  late final PatientRepository _patientRepository;
-  late final RoomRepository _roomRepository;
-  late final AppointmentRepository _appointmentRepository;
-
-  // Services
-  late final AuthService _authService;
-  late final UserService _userService;
-  late final DoctorService _doctorService;
-  late final PatientService _patientService;
-  late final RoomService _roomService;
-  late final AppointmentService _appointmentService;
-
-  // Menus
-  late final AdminMenu _adminMenu;
-  late final ReceptionistMenu _receptionistMenu;
-  late final DoctorMenu _doctorMenu;
-  late final MainMenu _mainMenu;
+  late final AuthenticationService authService;
+  late final UserService userService;
+  late final PatientService patientService;
+  late final AppointmentService appointmentService;
+  late final RoomService roomService;
+  late final StatisticsService statisticsService;
+  late final MainMenu mainMenu;
 
   ConsoleApp() {
-    _initializeApp();
+    _initializeServices();
   }
 
-  void _initializeApp() {
-    // Initialize storage
-    _storage = JsonStorage(dataDirectory: 'data');
-
+  void _initializeServices() {
     // Initialize repositories
-    _userRepository = UserRepository(_storage);
-    _doctorRepository = DoctorRepository(_storage);
-    _patientRepository = PatientRepository(_storage);
-    _roomRepository = RoomRepository(_storage);
-    _appointmentRepository = AppointmentRepository(_storage);
+    final userRepository = UserRepository();
+    final patientRepository = PatientRepository();
+    final appointmentRepository = AppointmentRepository();
+    final roomRepository = RoomRepository();
 
     // Initialize services
-    _authService = AuthService(_userRepository);
-    _userService = UserService(_userRepository);
-    _doctorService = DoctorService(_doctorRepository);
-    _patientService = PatientService(_patientRepository);
-    _roomService = RoomService(_roomRepository, _patientRepository);
-    _appointmentService = AppointmentService(
-      _appointmentRepository,
-      _patientRepository,
-      _doctorRepository,
-      _roomRepository,
+    authService = AuthenticationService(userRepository);
+    userService = UserService(userRepository);
+    patientService = PatientService(patientRepository);
+    appointmentService = AppointmentService(
+      appointmentRepository,
+      patientRepository,
+      userRepository,
+    );
+    roomService = RoomService(roomRepository);
+    statisticsService = StatisticsService(
+      userService,
+      patientService,
+      appointmentService,
+      roomService,
     );
 
-    // Initialize menus
-    _adminMenu = AdminMenu(
-      _authService,
-      _userService,
-      _doctorService,
-      _roomService,
-      _patientService,
-      _appointmentService,
-    );
-
-    _receptionistMenu = ReceptionistMenu(
-      _authService,
-      _patientService,
-      _appointmentService,
-      _doctorService,
-      _roomService,
-    );
-
-    _doctorMenu = DoctorMenu(
-      _authService,
-      _doctorService,
-      _appointmentService,
-      _patientService,
-    );
-
-    _mainMenu = MainMenu(
-      _authService,
-      _adminMenu,
-      _receptionistMenu,
-      _doctorMenu,
+    // Initialize main menu with all services
+    mainMenu = MainMenu(
+      authService,
+      userService,
+      patientService,
+      appointmentService,
+      roomService,
+      statisticsService,
     );
   }
 
-  Future<void> run() async {
-    await _authService.initialize();
-
-    await _mainMenu.show();
+  void run() {
+    mainMenu.display();
   }
+}
+
+void main() {
+  final app = ConsoleApp();
+  app.run();
 }

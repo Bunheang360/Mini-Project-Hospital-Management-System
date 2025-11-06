@@ -1,40 +1,53 @@
 import 'user.dart';
 import '../enums/user_role.dart';
+import '../enums/gender.dart';
 import '../enums/shift.dart';
 
 class Receptionist extends User {
-  final String fullName;
-  final String phoneNumber;
-  final String createdBy;
   final Shift shift;
 
   Receptionist({
     required super.id,
     required super.username,
     required super.password,
-    required super.createdAt,
-    required this.fullName,
-    required this.phoneNumber,
-    required this.createdBy,
+    required super.name,
+    required super.gender,
+    required super.phone,
+    required super.email,
     required this.shift,
   }) : super(role: UserRole.receptionist);
 
-  @override
-  String getPermissions() {
-    return 'Limited Access: Manage Patients and Appointments only';
-  }
-
-  // Receptionist-specific validation
-  bool isValidPhoneNumber() {
-    // Basic phone validation (digits only, 8-15 chars)
-    final phoneRegex = RegExp(r'^\d{8,15}$');
-    return phoneRegex.hasMatch(
-      phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), ''),
+  factory Receptionist.fromJson(Map<String, dynamic> json) {
+    return Receptionist(
+      id: json['id'],
+      username: json['username'],
+      password: json['password'],
+      name: json['name'],
+      gender: Gender.values.firstWhere((e) => e.name == json['gender']),
+      phone: json['phone'],
+      email: json['email'],
+      shift: Shift.values.firstWhere((e) => e.name == json['shift']),
     );
   }
 
   @override
-  String toString() {
-    return 'Receptionist(id: $id, username: $username, name: $fullName, phone: $phoneNumber, shift: ${shift.displayName})';
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'password': password,
+      'name': name,
+      'gender': gender.name,
+      'phone': phone,
+      'email': email,
+      'role': role.name,
+      'shift': shift.name,
+    };
+  }
+
+  @override
+  void displayInfo() {
+    super.displayInfo();
+    print('Shift: ${shift.name}');
   }
 }

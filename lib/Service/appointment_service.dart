@@ -2,311 +2,162 @@ import '../Domain/models/appointment.dart';
 import '../Domain/enums/appointment_status.dart';
 import '../Data/Repositories/appointment_repository.dart';
 import '../Data/Repositories/patient_repository.dart';
-import '../Data/Repositories/doctor_repository.dart';
-import '../Data/Repositories/room_repository.dart';
+import '../Data/Repositories/user_repository.dart';
 
 class AppointmentService {
-  final AppointmentRepository _appointmentRepository;
+  final AppointmentRepository _repository;
   final PatientRepository _patientRepository;
-  final DoctorRepository _doctorRepository;
-  final RoomRepository _roomRepository;
+  final UserRepository _userRepository;
 
   AppointmentService(
-    this._appointmentRepository,
+    this._repository,
     this._patientRepository,
-    this._doctorRepository,
-    this._roomRepository,
+    this._userRepository,
   );
 
-  // Generate unique ID
-  String _generateId() {
-    return 'apt_${DateTime.now().millisecondsSinceEpoch}';
-  }
-
-  // Create new appointment
-  Future<Appointment> createAppointment({
+  bool createAppointment({
+    required String id,
     required String patientId,
     required String doctorId,
-    required String roomId,
-    required DateTime appointmentDate,
+    String? roomId,
+    required DateTime dateTime,
     required String reason,
-  }) async {
-    // Validate inputs
-    if (reason.isEmpty || reason.length < 5) {
-      throw ArgumentError('Reason must be at least 5 characters');
+    String? notes,
+  }) {
+    // Validate patient exists
+    if (_patientRepository.getPatientById(patientId) == null) {
+      return false;
     }
 
-    // Verify patient exists
-    final patient = await _patientRepository.getById(patientId);
-    if (patient == null) {
-      throw Exception('Patient not found');
+    // Validate doctor exists
+    if (_userRepository.getDoctorById(doctorId) == null) {
+      return false;
     }
 
-    // Verify doctor exists
-    final doctor = await _doctorRepository.getById(doctorId);
-    if (doctor == null) {
-      throw Exception('Doctor not found');
+    // Check if appointment already exists
+    if (_repository.getAppointmentById(id) != null) {
+      return false;
     }
 
-    // Verify room exists
-    final room = await _roomRepository.getById(roomId);
-    if (room == null) {
-      throw Exception('Room not found');
+    // Check if appointment is in the past
+    if (dateTime.isBefore(DateTime.now())) {
+      return false;
     }
 
-    // Create appointment
     final appointment = Appointment(
-      id: _generateId(),
+      id: id,
       patientId: patientId,
       doctorId: doctorId,
       roomId: roomId,
-      appointmentDate: appointmentDate,
-      status: AppointmentStatus.scheduled,
+      dateTime: dateTime,
       reason: reason,
-      createdAt: DateTime.now(),
+      notes: notes,
     );
 
-    // Validate appointment date
-    if (!appointment.isValidAppointmentDate()) {
-      throw ArgumentError('Appointment date cannot be in the past');
-    }
-
-    // Check for conflicting appointments with doctor
-    final doctorConflicts = await checkDoctorAvailability(
-      doctorId,
-      appointmentDate,
-    );
-    if (doctorConflicts.isNotEmpty) {
-      throw Exception('Doctor already has an appointment at this time');
-    }
-
-    // Check for conflicting appointments with room
-    final roomConflicts = await checkRoomAvailability(roomId, appointmentDate);
-    if (roomConflicts.isNotEmpty) {
-      throw Exception('Room is already booked at this time');
-    }
-
-    // Save to repository
-    await _appointmentRepository.save(appointment);
-
-    return appointment;
+    _repository.addAppointment(appointment);
+    return true;
   }
 
-  // Get all appointments
-  Future<List<Appointment>> getAllAppointments() async {
-    return await _appointmentRepository.getAll();
+  List<Appointment> getAllAppointments() {
+    return _repository.getAllAppointments();
   }
 
-  // Get appointment by ID
-  Future<Appointment?> getAppointmentById(String id) async {
-    return await _appointmentRepository.getById(id);
+  Appointment? getAppointmentById(String id) {
+    return _repository.getAppointmentById(id);
   }
 
-  // Get appointments by patient ID
-  Future<List<Appointment>> getAppointmentsByPatient(String patientId) async {
-    return await _appointmentRepository.getByPatientId(patientId);
+  List<Appointment> getAppointmentsByDoctorId(String doctorId) {
+    return _repository.getAppointmentsByDoctorId(doctorId);
   }
 
-  // Get appointments by doctor ID
-  Future<List<Appointment>> getAppointmentsByDoctor(String doctorId) async {
-    return await _appointmentRepository.getByDoctorId(doctorId);
+  List<Appointment> getAppointmentsByPatientId(String patientId) {
+    return _repository.getAppointmentsByPatientId(patientId);
   }
 
-  // Get upcoming appointments
-  Future<List<Appointment>> getUpcomingAppointments() async {
-    return await _appointmentRepository.getUpcomingAppointments();
+  List<Appointment> getUpcomingAppointments(String doctorId) {
+    return _repository.getUpcomingAppointmentsByDoctorId(doctorId);
   }
 
-  // Get today's appointments
-  Future<List<Appointment>> getTodaysAppointments() async {
-    final appointments = await getAllAppointments();
-    return appointments.where((apt) => apt.isToday()).toList();
+  List<Appointment> getTodayAppointments(String doctorId) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(Duration(days: 1));
+
+    final appointments = _repository.getAppointmentsByDoctorId(doctorId);
+    return appointments
+        .where(
+          (a) =>
+              a.dateTime.isAfter(today) &&
+              a.dateTime.isBefore(tomorrow) &&
+              a.status == AppointmentStatus.scheduled,
+        )
+        .toList();
   }
 
-  // Check doctor availability at specific date/time
-  Future<List<Appointment>> checkDoctorAvailability(
-    String doctorId,
-    DateTime dateTime, {
-    String? excludeAppointmentId,
-  }) async {
-    final doctorAppointments = await getAppointmentsByDoctor(doctorId);
-
-    // Check for appointments within 1 hour window
-    return doctorAppointments.where((apt) {
-      if (apt.status != AppointmentStatus.scheduled) return false;
-      if (excludeAppointmentId != null && apt.id == excludeAppointmentId) {
-        return false;
-      }
-
-      final diff = apt.appointmentDate.difference(dateTime).abs();
-      return diff.inMinutes < 60; // Within 1 hour
-    }).toList();
-  }
-
-  // Check room availability at specific date/time
-  Future<List<Appointment>> checkRoomAvailability(
-    String roomId,
-    DateTime dateTime, {
-    String? excludeAppointmentId,
-  }) async {
-    final allAppointments = await getAllAppointments();
-
-    // Check for scheduled appointments using this room within 1 hour window
-    return allAppointments.where((apt) {
-      if (apt.status != AppointmentStatus.scheduled) return false;
-      if (apt.roomId != roomId) return false;
-      if (excludeAppointmentId != null && apt.id == excludeAppointmentId) {
-        return false;
-      }
-
-      final diff = apt.appointmentDate.difference(dateTime).abs();
-      return diff.inMinutes < 60; // Within 1 hour
-    }).toList();
-  }
-
-  // Update appointment
-  Future<void> updateAppointment(Appointment appointment) async {
-    // Validate
-    if (!appointment.isValidReason()) {
-      throw ArgumentError('Invalid reason');
-    }
-
-    if (!appointment.isValidAppointmentDate()) {
-      throw ArgumentError('Invalid appointment date');
-    }
-
-    // Check for conflicts if appointment is scheduled
-    if (appointment.status == AppointmentStatus.scheduled) {
-      // Check doctor availability (exclude current appointment)
-      final doctorConflicts = await checkDoctorAvailability(
-        appointment.doctorId,
-        appointment.appointmentDate,
-        excludeAppointmentId: appointment.id,
-      );
-
-      if (doctorConflicts.isNotEmpty) {
-        throw Exception('Doctor already has an appointment at this time');
-      }
-
-      // Check room availability (exclude current appointment)
-      final roomConflicts = await checkRoomAvailability(
-        appointment.roomId,
-        appointment.appointmentDate,
-        excludeAppointmentId: appointment.id,
-      );
-
-      if (roomConflicts.isNotEmpty) {
-        throw Exception('Room is already booked at this time');
-      }
-    }
-
-    await _appointmentRepository.save(appointment);
-  }
-
-  // Cancel appointment
-  Future<void> cancelAppointment(String id) async {
-    final appointment = await _appointmentRepository.getById(id);
-
+  bool updateAppointmentStatus(
+    String id,
+    AppointmentStatus status,
+    String? notes,
+  ) {
+    final appointment = _repository.getAppointmentById(id);
     if (appointment == null) {
-      throw Exception('Appointment not found');
+      return false;
     }
 
-    if (!appointment.canBeCancelled()) {
-      throw Exception('Only scheduled appointments can be cancelled');
+    appointment.status = status;
+    if (notes != null) {
+      appointment.notes = notes;
     }
 
-    appointment.cancel();
-    await _appointmentRepository.save(appointment);
+    _repository.updateAppointment(appointment);
+    return true;
   }
 
-  // Complete appointment
-  Future<void> completeAppointment(String id, {String? notes}) async {
-    final appointment = await _appointmentRepository.getById(id);
-
+  bool rescheduleAppointment(String id, DateTime newDateTime) {
+    final appointment = _repository.getAppointmentById(id);
     if (appointment == null) {
-      throw Exception('Appointment not found');
+      return false;
     }
 
-    if (!appointment.canBeCompleted()) {
-      throw Exception('Only scheduled appointments can be completed');
+    if (newDateTime.isBefore(DateTime.now())) {
+      return false;
     }
 
-    appointment.complete(notes);
-    await _appointmentRepository.save(appointment);
-  }
-
-  // Reschedule appointment
-  Future<void> rescheduleAppointment(String id, DateTime newDate) async {
-    final appointment = await _appointmentRepository.getById(id);
-
-    if (appointment == null) {
-      throw Exception('Appointment not found');
-    }
-
-    if (appointment.status != AppointmentStatus.scheduled) {
-      throw Exception('Only scheduled appointments can be rescheduled');
-    }
-
-    // Check doctor availability at new time (exclude current appointment)
-    final doctorConflicts = await checkDoctorAvailability(
-      appointment.doctorId,
-      newDate,
-      excludeAppointmentId: appointment.id,
-    );
-
-    if (doctorConflicts.isNotEmpty) {
-      throw Exception('Doctor already has an appointment at this time');
-    }
-
-    // Check room availability at new time (exclude current appointment)
-    final roomConflicts = await checkRoomAvailability(
-      appointment.roomId,
-      newDate,
-      excludeAppointmentId: appointment.id,
-    );
-
-    if (roomConflicts.isNotEmpty) {
-      throw Exception('Room is already booked at this time');
-    }
-
-    // Create new appointment with new date
-    final rescheduled = Appointment(
+    final updated = Appointment(
       id: appointment.id,
       patientId: appointment.patientId,
       doctorId: appointment.doctorId,
       roomId: appointment.roomId,
-      appointmentDate: newDate,
-      status: AppointmentStatus.scheduled,
+      dateTime: newDateTime,
+      status: appointment.status,
       reason: appointment.reason,
       notes: appointment.notes,
-      createdAt: appointment.createdAt,
     );
 
-    await _appointmentRepository.save(rescheduled);
+    _repository.updateAppointment(updated);
+    return true;
   }
 
-  // Delete appointment
-  Future<bool> deleteAppointment(String id) async {
-    final appointment = await _appointmentRepository.getById(id);
-
-    if (appointment == null) {
-      throw Exception('Appointment not found');
+  bool deleteAppointment(String id) {
+    if (_repository.getAppointmentById(id) == null) {
+      return false;
     }
-
-    return await _appointmentRepository.delete(id);
+    _repository.deleteAppointment(id);
+    return true;
   }
 
-  // Get appointment count
-  Future<int> getAppointmentCount() async {
-    final appointments = await getAllAppointments();
-    return appointments.length;
-  }
-
-  // Get scheduled appointment count
-  Future<int> getScheduledAppointmentCount() async {
-    final appointments = await _appointmentRepository.getByStatus(
-      AppointmentStatus.scheduled,
-    );
-    return appointments.length;
+  Map<AppointmentStatus, int> getAppointmentStatistics() {
+    final appointments = _repository.getAllAppointments();
+    return {
+      AppointmentStatus.scheduled: appointments
+          .where((a) => a.status == AppointmentStatus.scheduled)
+          .length,
+      AppointmentStatus.completed: appointments
+          .where((a) => a.status == AppointmentStatus.completed)
+          .length,
+      AppointmentStatus.cancelled: appointments
+          .where((a) => a.status == AppointmentStatus.cancelled)
+          .length,
+    };
   }
 }

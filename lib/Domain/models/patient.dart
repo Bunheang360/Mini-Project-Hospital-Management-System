@@ -32,7 +32,9 @@ class Patient {
 
   bool isValidPhoneNumber() {
     final phoneRegex = RegExp(r'^\d{8,15}$');
-    return phoneRegex.hasMatch(phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), ''));
+    return phoneRegex.hasMatch(
+      phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), ''),
+    );
   }
 
   bool isValidAddress() {
@@ -40,7 +42,48 @@ class Patient {
   }
 
   String getDisplayInfo() {
-    return '$name (${gender.displayName}, $age years) - $phoneNumber';
+    return '$name (${gender.name}, $age years) - $phoneNumber';
+  }
+
+  // JSON serialization
+  factory Patient.fromJson(Map<String, dynamic> json) {
+    return Patient(
+      id: json['id'],
+      name: json['name'],
+      age: json['age'],
+      gender: Gender.values.firstWhere((e) => e.name == json['gender']),
+      phoneNumber: json['phoneNumber'],
+      address: json['address'],
+      medicalHistory: json['medicalHistory'],
+      registrationDate: DateTime.parse(json['registrationDate']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'age': age,
+      'gender': gender.name,
+      'phoneNumber': phoneNumber,
+      'address': address,
+      'medicalHistory': medicalHistory,
+      'registrationDate': registrationDate.toIso8601String(),
+    };
+  }
+
+  // Display method for console output
+  void displayInfo() {
+    print('Patient ID: $id');
+    print('Name: $name');
+    print('Age: $age');
+    print('Gender: ${gender.name}');
+    print('Phone: $phoneNumber');
+    print('Address: $address');
+    if (medicalHistory != null) {
+      print('Medical History: $medicalHistory');
+    }
+    print('Registration Date: ${registrationDate.toString().split(' ')[0]}');
   }
 
   // Helper method to check if patient is a kid
@@ -56,7 +99,7 @@ class Patient {
   @override
   String toString() {
     return 'Patient(id: $id, name: $name, age: $age, '
-        'gender: ${gender.displayName}, phone: $phoneNumber)';
+        'gender: ${gender.name}, phone: $phoneNumber)';
   }
 
   @override

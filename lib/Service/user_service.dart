@@ -1,234 +1,160 @@
-import '../Domain/models/user.dart';
-import '../Domain/models/admin.dart';
+import '../Domain/models/doctor.dart';
 import '../Domain/models/receptionist.dart';
-import '../Domain/models/doctor_user.dart';
+import '../Domain/enums/gender.dart';
 import '../Domain/enums/shift.dart';
 import '../Data/Repositories/user_repository.dart';
+import 'validation_service.dart';
 
 class UserService {
-  final UserRepository _userRepository;
+  final UserRepository _repository;
 
-  UserService(this._userRepository);
+  UserService(this._repository);
 
-  // Generate unique ID
-  String _generateId() {
-    return 'user_${DateTime.now().millisecondsSinceEpoch}';
-  }
-
-  // Create new Admin
-  Future<Admin> createAdmin({
+  // Doctor operations
+  bool addDoctor({
+    required String id,
     required String username,
     required String password,
-    required String fullName,
+    required String name,
+    required Gender gender,
+    required String phone,
     required String email,
-  }) async {
-    // Validate inputs
-    if (username.isEmpty || username.length < 3) {
-      throw ArgumentError('Username must be at least 3 characters');
+    required String specialization,
+    required String department,
+    String shift = 'Morning (8:00-16:00)',
+  }) {
+    if (!_validateUserInput(username, password, phone, email)) {
+      return false;
     }
 
-    if (password.isEmpty || password.length < 6) {
-      throw ArgumentError('Password must be at least 6 characters');
+    if (_repository.isUsernameExists(username)) {
+      return false;
     }
 
-    if (fullName.isEmpty) {
-      throw ArgumentError('Full name cannot be empty');
-    }
-
-    if (email.isEmpty) {
-      throw ArgumentError('Email cannot be empty');
-    }
-
-    // Check if username already exists
-    if (await _userRepository.usernameExists(username)) {
-      throw Exception('Username already exists');
-    }
-
-    // Create admin
-    final admin = Admin(
-      id: _generateId(),
+    final doctor = Doctor(
+      id: id,
       username: username,
       password: password,
-      createdAt: DateTime.now(),
-      fullName: fullName,
+      name: name,
+      gender: gender,
+      phone: phone,
       email: email,
-    );
-
-    // Validate email
-    if (!admin.isValidEmail()) {
-      throw ArgumentError('Invalid email format');
-    }
-
-    // Save to repository
-    await _userRepository.save(admin);
-
-    return admin;
-  }
-
-  // Create new Receptionist
-  Future<Receptionist> createReceptionist({
-    required String username,
-    required String password,
-    required String fullName,
-    required String phoneNumber,
-    required String createdByAdminId,
-    required Shift shift,
-  }) async {
-    // Validate inputs
-    if (username.isEmpty || username.length < 3) {
-      throw ArgumentError('Username must be at least 3 characters');
-    }
-
-    if (password.isEmpty || password.length < 6) {
-      throw ArgumentError('Password must be at least 6 characters');
-    }
-
-    if (fullName.isEmpty) {
-      throw ArgumentError('Full name cannot be empty');
-    }
-
-    if (phoneNumber.isEmpty) {
-      throw ArgumentError('Phone number cannot be empty');
-    }
-
-    // Check if username already exists
-    if (await _userRepository.usernameExists(username)) {
-      throw Exception('Username already exists');
-    }
-
-    // Create receptionist
-    final receptionist = Receptionist(
-      id: _generateId(),
-      username: username,
-      password: password,
-      createdAt: DateTime.now(),
-      fullName: fullName,
-      phoneNumber: phoneNumber,
-      createdBy: createdByAdminId,
+      specialization: specialization,
+      department: department,
       shift: shift,
     );
 
-    // Validate phone number
-    if (!receptionist.isValidPhoneNumber()) {
-      throw ArgumentError('Invalid phone number format');
-    }
-
-    // Save to repository
-    await _userRepository.save(receptionist);
-
-    return receptionist;
+    _repository.addDoctor(doctor);
+    return true;
   }
 
-  // Create new Doctor User
-  Future<DoctorUser> createDoctorUser({
+  List<Doctor> getAllDoctors() {
+    return _repository.getAllDoctors();
+  }
+
+  Doctor? getDoctorById(String id) {
+    return _repository.getDoctorById(id);
+  }
+
+  List<Doctor> searchDoctorsBySpecialization(String specialization) {
+    final doctors = _repository.getAllDoctors();
+    return doctors
+        .where(
+          (d) => d.specialization.toLowerCase().contains(
+            specialization.toLowerCase(),
+          ),
+        )
+        .toList();
+  }
+
+  bool updateDoctor(Doctor doctor) {
+    if (_repository.getDoctorById(doctor.id) == null) {
+      return false;
+    }
+    _repository.updateDoctor(doctor);
+    return true;
+  }
+
+  bool deleteDoctor(String id) {
+    if (_repository.getDoctorById(id) == null) {
+      return false;
+    }
+    _repository.deleteDoctor(id);
+    return true;
+  }
+
+  // Receptionist operations
+  bool addReceptionist({
+    required String id,
     required String username,
     required String password,
-    required String fullName,
-    required String doctorId,
-  }) async {
-    // Validate inputs
-    if (username.isEmpty || username.length < 3) {
-      throw ArgumentError('Username must be at least 3 characters');
+    required String name,
+    required Gender gender,
+    required String phone,
+    required String email,
+    required Shift shift,
+  }) {
+    if (!_validateUserInput(username, password, phone, email)) {
+      return false;
     }
 
-    if (password.isEmpty || password.length < 6) {
-      throw ArgumentError('Password must be at least 6 characters');
+    if (_repository.isUsernameExists(username)) {
+      return false;
     }
 
-    if (fullName.isEmpty) {
-      throw ArgumentError('Full name cannot be empty');
-    }
-
-    if (doctorId.isEmpty) {
-      throw ArgumentError('Doctor ID cannot be empty');
-    }
-
-    // Check if username already exists
-    if (await _userRepository.usernameExists(username)) {
-      throw Exception('Username already exists');
-    }
-
-    // Create doctor user
-    final doctorUser = DoctorUser(
-      id: _generateId(),
+    final receptionist = Receptionist(
+      id: id,
       username: username,
       password: password,
-      createdAt: DateTime.now(),
-      fullName: fullName,
-      doctorId: doctorId,
+      name: name,
+      gender: gender,
+      phone: phone,
+      email: email,
+      shift: shift,
     );
 
-    // Save to repository
-    await _userRepository.save(doctorUser);
-
-    return doctorUser;
+    _repository.addReceptionist(receptionist);
+    return true;
   }
 
-  // Get all users
-  Future<List<User>> getAllUsers() {
-    return _userRepository.getAll();
+  List<Receptionist> getAllReceptionists() {
+    return _repository.getAllReceptionists();
   }
 
-  // Get all receptionists
-  Future<List<Receptionist>> getAllReceptionists() async {
-    final users = await _userRepository.getAll();
-    return users.whereType<Receptionist>().toList();
+  Receptionist? getReceptionistById(String id) {
+    return _repository.getReceptionistById(id);
   }
 
-  // Get all admins
-  Future<List<Admin>> getAllAdmins() async {
-    final users = await _userRepository.getAll();
-    return users.whereType<Admin>().toList();
+  List<Receptionist> getReceptionistsByShift(Shift shift) {
+    final receptionists = _repository.getAllReceptionists();
+    return receptionists.where((r) => r.shift == shift).toList();
   }
 
-  // Get all doctor users
-  Future<List<DoctorUser>> getAllDoctorUsers() async {
-    final users = await _userRepository.getAll();
-    return users.whereType<DoctorUser>().toList();
-  }
-
-  // Get user by ID
-  Future<User?> getUserById(String id) {
-    return _userRepository.getById(id);
-  }
-
-  // Update receptionist
-  Future<void> updateReceptionist(Receptionist receptionist) async {
-    // Validate
-    if (!receptionist.isValidUsername()) {
-      throw ArgumentError('Invalid username');
+  bool updateReceptionist(Receptionist receptionist) {
+    if (_repository.getReceptionistById(receptionist.id) == null) {
+      return false;
     }
-
-    if (!receptionist.isValidPassword()) {
-      throw ArgumentError('Invalid password');
-    }
-
-    if (!receptionist.isValidPhoneNumber()) {
-      throw ArgumentError('Invalid phone number');
-    }
-
-    return _userRepository.save(receptionist);
+    _repository.updateReceptionist(receptionist);
+    return true;
   }
 
-  // Delete receptionist
-  Future<bool> deleteReceptionist(String id) async {
-    // Check if user exists and is a receptionist
-    final user = await _userRepository.getById(id);
-
-    if (user == null) {
-      throw Exception('User not found');
+  bool deleteReceptionist(String id) {
+    if (_repository.getReceptionistById(id) == null) {
+      return false;
     }
-
-    if (user is! Receptionist) {
-      throw Exception('User is not a receptionist');
-    }
-
-    return _userRepository.delete(id);
+    _repository.deleteReceptionist(id);
+    return true;
   }
 
-  // Get receptionist count
-  Future<int> getReceptionistCount() async {
-    final receptionists = await getAllReceptionists();
-    return receptionists.length;
+  bool _validateUserInput(
+    String username,
+    String password,
+    String phone,
+    String email,
+  ) {
+    return ValidationService.isValidUsername(username) &&
+        ValidationService.isValidPassword(password) &&
+        ValidationService.isValidPhone(phone) &&
+        ValidationService.isValidEmail(email);
   }
 }

@@ -4,111 +4,63 @@ class Appointment {
   final String id;
   final String patientId;
   final String doctorId;
-  final String roomId;
-  final DateTime appointmentDate;
+  final String? roomId;
+  final DateTime dateTime;
   AppointmentStatus status;
   final String reason;
   String? notes;
-  final DateTime createdAt;
 
   Appointment({
     required this.id,
     required this.patientId,
     required this.doctorId,
-    required this.roomId,
-    required this.appointmentDate,
-    required this.status,
+    this.roomId,
+    required this.dateTime,
+    this.status = AppointmentStatus.scheduled,
     required this.reason,
     this.notes,
-    required this.createdAt,
   });
 
-  // Validation methods
-  bool isValidReason() {
-    return reason.isNotEmpty && reason.length >= 5;
-  }
-
-  bool isValidAppointmentDate() {
-    // Appointment should not be in the past (allow same day)
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final appointmentDay = DateTime(
-      appointmentDate.year,
-      appointmentDate.month,
-      appointmentDate.day,
+  factory Appointment.fromJson(Map<String, dynamic> json) {
+    return Appointment(
+      id: json['id'],
+      patientId: json['patientId'],
+      doctorId: json['doctorId'],
+      roomId: json['roomId'],
+      dateTime: DateTime.parse(json['dateTime']),
+      status: AppointmentStatus.values.firstWhere(
+        (e) => e.name == json['status'],
+      ),
+      reason: json['reason'],
+      notes: json['notes'],
     );
-    return appointmentDay.isAtSameMomentAs(today) ||
-        appointmentDay.isAfter(today);
   }
 
-  // methods
-  bool canBeCancelled() {
-    return status == AppointmentStatus.scheduled;
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'patientId': patientId,
+      'doctorId': doctorId,
+      'roomId': roomId,
+      'dateTime': dateTime.toIso8601String(),
+      'status': status.name,
+      'reason': reason,
+      'notes': notes,
+    };
   }
 
-  bool canBeCompleted() {
-    return status == AppointmentStatus.scheduled;
-  }
-
-  void cancel() {
-    if (!canBeCancelled()) {
-      throw StateError('Only scheduled appointments can be cancelled');
+  void displayInfo() {
+    print('Appointment ID: $id');
+    print('Patient ID: $patientId');
+    print('Doctor ID: $doctorId');
+    if (roomId != null) {
+      print('Room ID: $roomId');
     }
-    status = AppointmentStatus.cancelled;
-  }
-
-  void complete(String? completionNotes) {
-    if (!canBeCompleted()) {
-      throw StateError('Only scheduled appointments can be completed');
-    }
-    status = AppointmentStatus.completed;
-    if (completionNotes != null) {
-      notes = completionNotes;
+    print('Date & Time: ${dateTime.toString()}');
+    print('Status: ${status.name}');
+    print('Reason: $reason');
+    if (notes != null) {
+      print('Notes: $notes');
     }
   }
-
-  void reschedule(DateTime newDate) {
-    if (status != AppointmentStatus.scheduled) {
-      throw StateError('Only scheduled appointments can be rescheduled');
-    }
-    // Note: In a real system, you'd create a new appointment. For simplicity, we're just updating the date here
-  }
-
-  bool isPast() {
-    return appointmentDate.isBefore(DateTime.now());
-  }
-
-  bool isToday() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final appointmentDay = DateTime(
-      appointmentDate.year,
-      appointmentDate.month,
-      appointmentDate.day,
-    );
-    return appointmentDay.isAtSameMomentAs(today);
-  }
-
-  String getDisplayInfo() {
-    final dateStr =
-        '${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}';
-    final timeStr =
-        '${appointmentDate.hour.toString().padLeft(2, '0')}:${appointmentDate.minute.toString().padLeft(2, '0')}';
-    return 'Appointment on $dateStr at $timeStr - ${status.displayName}';
-  }
-
-  @override
-  String toString() {
-    return 'Appointment(id: $id, patientId: $patientId, doctorId: $doctorId, '
-        'date: $appointmentDate, status: ${status.displayName}, reason: $reason)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Appointment && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
 }

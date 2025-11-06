@@ -1,115 +1,147 @@
+// lib/UI/menus/main_menu.dart
 import 'dart:io';
 import '../../Service/auth_service.dart';
+import '../../Service/user_service.dart';
+import '../../Service/patient_service.dart';
+import '../../Service/appointment_service.dart';
+import '../../Service/room_service.dart';
+import '../../Service/statistic_service.dart';
 import '../../Domain/enums/user_role.dart';
-import '../utils/console_helper.dart';
-import '../utils/input_valid_utils.dart';
+import '../utils/console_utils.dart';
 import 'admin_menu.dart';
 import 'receptionist_menu.dart';
 import 'doctor_menu.dart';
 
 class MainMenu {
-  final AuthService _authService;
-  final AdminMenu _adminMenu;
-  final ReceptionistMenu _receptionistMenu;
-  final DoctorMenu _doctorMenu;
+  final AuthenticationService _authService;
+  final UserService _userService;
+  final PatientService _patientService;
+  final AppointmentService _appointmentService;
+  final RoomService _roomService;
+  final StatisticsService _statisticsService;
 
   MainMenu(
     this._authService,
-    this._adminMenu,
-    this._receptionistMenu,
-    this._doctorMenu,
+    this._userService,
+    this._patientService,
+    this._appointmentService,
+    this._roomService,
+    this._statisticsService,
   );
 
-  // Display main menu and handle login
-  Future<void> show() async {
+  void display() {
     while (true) {
-      ConsoleHelper.clearScreen();
-      ConsoleHelper.printHeader('Hospital Management System');
+      ConsoleUtils.clearScreen();
+      print('\n' + '=' * 50);
+      print('HOSPITAL MANAGEMENT SYSTEM');
+      print('=' * 50);
+      print('1. Login');
+      print('2. Exit');
+      print('=' * 50);
+      stdout.write('Select an option: ');
 
-      print('Welcome! Please select your role:\n');
-      ConsoleHelper.printMenu([
-        'Login as Admin',
-        'Login as Receptionist',
-        'Login as Doctor',
-        'Exit',
-      ]);
+      final choice = stdin.readLineSync();
 
-      final choice = InputValidator.readChoice(
-        '\nEnter your choice',
-        4,
-        allowZero: false,
+      switch (choice) {
+        case '1':
+          _login();
+          break;
+        case '2':
+          ConsoleUtils.clearScreen();
+          print('\nThank you for using Hospital Management System!');
+          exit(0);
+        default:
+          print('\nInvalid option! Please try again.');
+          sleep(Duration(seconds: 1));
+      }
+    }
+  }
+
+  void _login() {
+    ConsoleUtils.clearScreen();
+    // Show user type selection
+    print('\n--- SELECT USER TYPE ---');
+    print('1. Admin');
+    print('2. Doctor');
+    print('3. Receptionist');
+    print('=' * 50);
+    stdout.write('Select user type: ');
+
+    final roleChoice = stdin.readLineSync();
+
+    UserRole? selectedRole;
+    switch (roleChoice) {
+      case '1':
+        selectedRole = UserRole.admin;
+        break;
+      case '2':
+        selectedRole = UserRole.doctor;
+        break;
+      case '3':
+        selectedRole = UserRole.receptionist;
+        break;
+      default:
+        print('\nInvalid option! Please try again.');
+        sleep(Duration(seconds: 1));
+        return;
+    }
+
+    ConsoleUtils.clearScreen();
+    // Now ask for credentials
+    print('\n--- LOGIN ---');
+    stdout.write('Username: ');
+    final username = stdin.readLineSync() ?? '';
+    stdout.write('Password: ');
+    final password = stdin.readLineSync() ?? '';
+
+    final user = _authService.login(username, password);
+
+    if (user == null) {
+      print('\nInvalid username or password!');
+      sleep(Duration(seconds: 2));
+      return;
+    }
+
+    // Verify the role matches
+    if (user.role != selectedRole) {
+      print(
+        '\nError: You selected ${selectedRole.toString().split('.').last} but logged in as ${user.role.toString().split('.').last}!',
       );
-
-      if (choice == 4) {
-        _exitSystem();
-        return;
-      }
-
-      UserRole role;
-      if (choice == 1) {
-        role = UserRole.admin;
-      } else if (choice == 2) {
-        role = UserRole.receptionist;
-      } else {
-        role = UserRole.doctor;
-      }
-
-      await _handleLogin(role);
+      sleep(Duration(seconds: 2));
+      return;
     }
-  }
 
-  // Handle login process
-  Future<void> _handleLogin(UserRole role) async {
-    ConsoleHelper.clearScreen();
-    ConsoleHelper.printHeader('Login - ${role.displayName}');
+    print('\nLogin successful! Welcome, ${user.name}');
+    sleep(Duration(seconds: 1));
 
-    final username = InputValidator.readString('Username');
-    final password = InputValidator.readString('Password');
-
-    try {
-      final user = await _authService.login(username, password);
-
-      if (user == null) {
-        ConsoleHelper.printError('Login failed');
-        ConsoleHelper.pressEnterToContinue();
-        return;
-      }
-
-      // Check if user role matches selected role
-      if (user.role != role) {
-        ConsoleHelper.printError('Invalid role for this user');
-        _authService.logout();
-        ConsoleHelper.pressEnterToContinue();
-        return;
-      }
-
-      ConsoleHelper.printSuccess('Login successful!');
-      ConsoleHelper.printInfo('Welcome, ${user.username}!');
-      await Future.delayed(Duration(seconds: 1));
-
-      // Route to appropriate menu
-      if (role == UserRole.admin) {
-        await _adminMenu.show();
-      } else if (role == UserRole.receptionist) {
-        await _receptionistMenu.show();
-      } else {
-        await _doctorMenu.show();
-      }
-
-      // Logout after menu exits
-      _authService.logout();
-    } catch (e) {
-      ConsoleHelper.printError(e.toString());
-      ConsoleHelper.pressEnterToContinue();
+    switch (user.role) {
+      case UserRole.admin:
+        final adminMenu = AdminMenu(
+          user,
+          _userService,
+          _roomService,
+          _statisticsService,
+        );
+        adminMenu.display();
+        break;
+      case UserRole.receptionist:
+        final receptionistMenu = ReceptionistMenu(
+          user,
+          _patientService,
+          _appointmentService,
+          _userService,
+          _roomService,
+        );
+        receptionistMenu.display();
+        break;
+      case UserRole.doctor:
+        final doctorMenu = DoctorMenu(
+          user,
+          _appointmentService,
+          _patientService,
+        );
+        doctorMenu.display();
+        break;
     }
-  }
-
-  // Exit system
-  void _exitSystem() {
-    ConsoleHelper.clearScreen();
-    ConsoleHelper.printHeader('Thank You!');
-    print('Exiting Hospital Management System...');
-    print('Goodbye!\n');
-    exit(0);
   }
 }

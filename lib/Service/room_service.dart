@@ -1,197 +1,143 @@
 import '../Domain/models/room.dart';
-import '../Domain/enums/room_status.dart';
 import '../Domain/enums/room_type.dart';
+import '../Domain/enums/room_status.dart';
 import '../Data/Repositories/room_repository.dart';
-import '../Data/Repositories/patient_repository.dart';
 
 class RoomService {
-  final RoomRepository _roomRepository;
-  final PatientRepository _patientRepository;
+  final RoomRepository _repository;
 
-  RoomService(this._roomRepository, this._patientRepository);
+  RoomService(this._repository);
 
-  // Generate unique ID
-  String _generateId() {
-    return 'room_${DateTime.now().millisecondsSinceEpoch}';
-  }
-
-  // Create new room
-  Future<Room> createRoom({
+  bool addRoom({
+    required String id,
     required String roomNumber,
     required RoomType type,
     required int bedCount,
-    required double pricePerDay,
-  }) async {
-    // Validate inputs
-    if (roomNumber.isEmpty) {
-      throw ArgumentError('Room number cannot be empty');
+    RoomStatus status = RoomStatus.available,
+  }) {
+    if (_repository.getRoomById(id) != null) {
+      return false;
     }
 
-    if (bedCount <= 0 || bedCount > 10) {
-      throw ArgumentError('Bed count must be between 1 and 10');
+    if (bedCount <= 0) {
+      return false;
     }
 
-    if (pricePerDay < 0) {
-      throw ArgumentError('Price per day cannot be negative');
-    }
-
-    // Check if room number already exists
-    if (await _roomRepository.roomNumberExists(roomNumber)) {
-      throw Exception('Room number already exists');
-    }
-
-    // Create room
     final room = Room(
-      id: _generateId(),
+      id: id,
       roomNumber: roomNumber,
       type: type,
-      status: RoomStatus.available,
+      status: status,
       bedCount: bedCount,
-      pricePerDay: pricePerDay,
-      createdAt: DateTime.now(),
     );
 
-    // Save to repository
-    await _roomRepository.save(room);
-
-    return room;
+    _repository.addRoom(room);
+    return true;
   }
 
-  // Get all rooms
-  Future<List<Room>> getAllRooms() {
-    return _roomRepository.getAll();
+  List<Room> getAllRooms() {
+    return _repository.getAllRooms();
   }
 
-  // Get room by ID
-  Future<Room?> getRoomById(String id) {
-    return _roomRepository.getById(id);
+  Room? getRoomById(String id) {
+    return _repository.getRoomById(id);
   }
 
-  // Get room by room number
-  Future<Room?> getRoomByRoomNumber(String roomNumber) {
-    return _roomRepository.getByRoomNumber(roomNumber);
+  Room? getRoomByRoomNumber(String roomNumber) {
+    return _repository.getRoomByRoomNumber(roomNumber);
   }
 
-  // Get available rooms
-  Future<List<Room>> getAvailableRooms() {
-    return _roomRepository.getAvailableRooms();
+  List<Room> getAvailableRooms() {
+    final rooms = _repository.getAllRooms();
+    return rooms.where((r) => r.status == RoomStatus.available).toList();
   }
 
-  // Get rooms by type
-  Future<List<Room>> getRoomsByType(RoomType type) {
-    return _roomRepository.getByType(type);
+  List<Room> getRoomsByType(RoomType type) {
+    final rooms = _repository.getAllRooms();
+    return rooms.where((r) => r.type == type).toList();
   }
 
-  // Get rooms by status
-  Future<List<Room>> getRoomsByStatus(RoomStatus status) {
-    return _roomRepository.getByStatus(status);
+  List<Room> getRoomsByStatus(RoomStatus status) {
+    final rooms = _repository.getAllRooms();
+    return rooms.where((r) => r.status == status).toList();
   }
 
-  // Update room
-  Future<void> updateRoom(Room room) async {
-    // Validate
-    if (!room.isValidRoomNumber()) {
-      throw ArgumentError('Invalid room number');
-    }
-
-    if (!room.isValidBedCount()) {
-      throw ArgumentError('Invalid bed count');
-    }
-
-    if (!room.isValidPrice()) {
-      throw ArgumentError('Invalid price');
-    }
-
-    return _roomRepository.save(room);
-  }
-
-  // Assign patient to room
-  Future<void> assignPatientToRoom(String roomId, String patientId) async {
-    // Get room
-    final room = await _roomRepository.getById(roomId);
+  bool assignPatientToRoom(String roomId, String patientId) {
+    final room = _repository.getRoomById(roomId);
     if (room == null) {
-      throw Exception('Room not found');
+      return false;
     }
 
-    // Verify patient exists
-    final patient = await _patientRepository.getById(patientId);
-    if (patient == null) {
-      throw Exception('Patient not found');
+    if (room.status != RoomStatus.available) {
+      return false;
     }
 
-    // Check if room is available
-    if (!room.canAssignPatient()) {
-      throw Exception('Room is not available for assignment');
-    }
-
-    // Assign patient
-    room.assignPatient(patientId);
-
-    // Save updated room
-    return _roomRepository.save(room);
+    room.status = RoomStatus.occupied;
+    room.patientId = patientId;
+    _repository.updateRoom(room);
+    return true;
   }
 
-  // Release patient from room
-  Future<void> releasePatientFromRoom(String roomId) async {
-    // Get room
-    final room = await _roomRepository.getById(roomId);
+  bool releaseRoom(String roomId) {
+    final room = _repository.getRoomById(roomId);
     if (room == null) {
-      throw Exception('Room not found');
+      return false;
     }
 
-    // Release patient
-    room.releasePatient();
-
-    // Save updated room
-    return _roomRepository.save(room);
+    room.status = RoomStatus.available;
+    room.patientId = null;
+    _repository.updateRoom(room);
+    return true;
   }
 
-  // Set room to maintenance
-  Future<void> setRoomToMaintenance(String roomId) async {
-    // Get room
-    final room = await _roomRepository.getById(roomId);
+  bool updateRoomStatus(String roomNumber, RoomStatus status) {
+    final room = _repository.getRoomByRoomNumber(roomNumber);
     if (room == null) {
-      throw Exception('Room not found');
+      return false;
     }
 
-    // Set to maintenance
-    room.setMaintenance();
-
-    // Save updated room
-    return _roomRepository.save(room);
+    room.status = status;
+    _repository.updateRoom(room);
+    return true;
   }
 
-  // Delete room
-  Future<bool> deleteRoom(String id) async {
-    final room = await _roomRepository.getById(id);
-
+  bool deleteRoom(String roomNumber) {
+    final room = _repository.getRoomByRoomNumber(roomNumber);
     if (room == null) {
-      throw Exception('Room not found');
+      return false;
     }
 
-    // Check if room is occupied
+    // Don't delete occupied rooms
     if (room.status == RoomStatus.occupied) {
-      throw Exception('Cannot delete occupied room');
+      return false;
     }
 
-    return _roomRepository.delete(id);
+    _repository.deleteRoom(room.id);
+    return true;
   }
 
-  // Get room count
-  Future<int> getRoomCount() async {
-    final rooms = await getAllRooms();
-    return rooms.length;
+  Map<RoomStatus, int> getRoomStatistics() {
+    final rooms = _repository.getAllRooms();
+    return {
+      RoomStatus.available: rooms
+          .where((r) => r.status == RoomStatus.available)
+          .length,
+      RoomStatus.occupied: rooms
+          .where((r) => r.status == RoomStatus.occupied)
+          .length,
+      RoomStatus.maintenance: rooms
+          .where((r) => r.status == RoomStatus.maintenance)
+          .length,
+    };
   }
 
-  // Get available room count
-  Future<int> getAvailableRoomCount() async {
-    final availableRooms = await getAvailableRooms();
-    return availableRooms.length;
+  int getTotalBedCount() {
+    final rooms = _repository.getAllRooms();
+    return rooms.fold(0, (sum, room) => sum + room.bedCount);
   }
 
-  // Get occupied room count
-  Future<int> getOccupiedRoomCount() async {
-    final occupiedRooms = await getRoomsByStatus(RoomStatus.occupied);
-    return occupiedRooms.length;
+  int getAvailableBedCount() {
+    final availableRooms = getAvailableRooms();
+    return availableRooms.fold(0, (sum, room) => sum + room.bedCount);
   }
 }

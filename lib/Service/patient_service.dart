@@ -1,149 +1,82 @@
 import '../Domain/models/patient.dart';
 import '../Domain/enums/gender.dart';
 import '../Data/Repositories/patient_repository.dart';
+import 'validation_service.dart';
 
 class PatientService {
-  final PatientRepository _patientRepository;
+  final PatientRepository _repository;
 
-  PatientService(this._patientRepository);
+  PatientService(this._repository);
 
-  // Generate unique ID
-  String _generateId() {
-    return 'pat_${DateTime.now().millisecondsSinceEpoch}';
-  }
-
-  // Create new patient
-  Future<Patient> createPatient({
+  bool addPatient({
+    required String id,
     required String name,
-    required int age,
     required Gender gender,
+    required int age,
     required String phoneNumber,
     required String address,
     String? medicalHistory,
-  }) async {
-    // Validate inputs
-    if (name.isEmpty || name.length < 2) {
-      throw ArgumentError('Name must be at least 2 characters');
+  }) {
+    if (!ValidationService.isValidPhone(phoneNumber)) {
+      return false;
     }
 
-    if (age <= 0 || age > 150) {
-      throw ArgumentError('Age must be between 1 and 150');
+    if (_repository.getPatientById(id) != null) {
+      return false;
     }
 
-    if (phoneNumber.isEmpty) {
-      throw ArgumentError('Phone number cannot be empty');
-    }
-
-    if (address.isEmpty || address.length < 5) {
-      throw ArgumentError('Address must be at least 5 characters');
-    }
-
-    // Check if phone number already exists
-    if (await _patientRepository.phoneNumberExists(phoneNumber)) {
-      throw Exception('Phone number already registered');
-    }
-
-    // Create patient
     final patient = Patient(
-      id: _generateId(),
+      id: id,
       name: name,
-      age: age,
       gender: gender,
+      age: age,
       phoneNumber: phoneNumber,
       address: address,
       medicalHistory: medicalHistory,
       registrationDate: DateTime.now(),
     );
 
-    // Additional validations
-    if (!patient.isValidPhoneNumber()) {
-      throw ArgumentError('Invalid phone number format');
+    _repository.addPatient(patient);
+    return true;
+  }
+
+  List<Patient> getAllPatients() {
+    return _repository.getAllPatients();
+  }
+
+  Patient? getPatientById(String id) {
+    return _repository.getPatientById(id);
+  }
+
+  List<Patient> searchPatientsByName(String name) {
+    final patients = _repository.getAllPatients();
+    return patients
+        .where((p) => p.name.toLowerCase().contains(name.toLowerCase()))
+        .toList();
+  }
+
+  List<Patient> getPatientsByAgeRange(int minAge, int maxAge) {
+    final patients = _repository.getAllPatients();
+    return patients.where((p) => p.age >= minAge && p.age <= maxAge).toList();
+  }
+
+  bool updatePatient(Patient patient) {
+    if (_repository.getPatientById(patient.id) == null) {
+      return false;
     }
-
-    // Save to repository
-    await _patientRepository.save(patient);
-
-    return patient;
+    _repository.updatePatient(patient);
+    return true;
   }
 
-  // Get all patients
-  Future<List<Patient>> getAllPatients() {
-    return _patientRepository.getAll();
-  }
-
-  // Get patient by ID
-  Future<Patient?> getPatientById(String id) {
-    return _patientRepository.getById(id);
-  }
-
-  // Search patients by name
-  Future<List<Patient>> searchPatientsByName(String name) async {
-    if (name.isEmpty) {
-      return getAllPatients();
+  bool deletePatient(String id) {
+    if (_repository.getPatientById(id) == null) {
+      return false;
     }
-    return _patientRepository.searchByName(name);
+    _repository.deletePatient(id);
+    return true;
   }
 
-  // Get patient by phone number
-  Future<Patient?> getPatientByPhoneNumber(String phoneNumber) {
-    return _patientRepository.getByPhoneNumber(phoneNumber);
-  }
-
-  // Update patient
-  Future<void> updatePatient(Patient patient) async {
-    // Validate
-    if (!patient.isValidName()) {
-      throw ArgumentError('Invalid name');
-    }
-
-    if (!patient.isValidAge()) {
-      throw ArgumentError('Invalid age');
-    }
-
-    if (!patient.isValidPhoneNumber()) {
-      throw ArgumentError('Invalid phone number');
-    }
-
-    if (!patient.isValidAddress()) {
-      throw ArgumentError('Invalid address');
-    }
-
-    return _patientRepository.save(patient);
-  }
-
-  // Delete patient
-  Future<bool> deletePatient(String id) async {
-    final patient = await _patientRepository.getById(id);
-
-    if (patient == null) {
-      throw Exception('Patient not found');
-    }
-
-    return _patientRepository.delete(id);
-  }
-
-  // Get patient count
-  Future<int> getPatientCount() async {
-    final patients = await getAllPatients();
-    return patients.length;
-  }
-
-  // Get patients (under 18)
-  Future<List<Patient>> getKidPatients() async {
-    final patients = await getAllPatients();
-    return patients.where((patient) => patient.isKid()).toList();
-  }
-
-  // Get elderly patients (65+)
-  Future<List<Patient>> getElderlyPatients() async {
-    final patients = await getAllPatients();
-    return patients.where((patient) => patient.isElderly()).toList();
-  }
-
-  // Get patients sorted by registration date (newest first)
-  Future<List<Patient>> getPatientsSortedByDate() async {
-    final patients = await getAllPatients();
-    patients.sort((a, b) => b.registrationDate.compareTo(a.registrationDate));
-    return patients;
+  int getTotalPatients() {
+    return _repository.getAllPatients().length;
   }
 }

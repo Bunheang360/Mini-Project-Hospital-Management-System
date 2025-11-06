@@ -7,83 +7,47 @@ class Room {
   final RoomType type;
   RoomStatus status;
   final int bedCount;
-  final double pricePerDay;
-  String? currentPatientId;
-  final DateTime createdAt;
+  String? patientId;
 
   Room({
     required this.id,
     required this.roomNumber,
     required this.type,
-    required this.status,
+    this.status = RoomStatus.available,
     required this.bedCount,
-    required this.pricePerDay,
-    this.currentPatientId,
-    required this.createdAt,
+    this.patientId,
   });
 
-  // Validation methods
-  bool isValidRoomNumber() {
-    return roomNumber.isNotEmpty;
+  factory Room.fromJson(Map<String, dynamic> json) {
+    return Room(
+      id: json['id'],
+      roomNumber: json['roomNumber'],
+      type: RoomType.values.firstWhere((e) => e.name == json['type']),
+      status: RoomStatus.values.firstWhere((e) => e.name == json['status']),
+      bedCount: json['bedCount'] ?? json['capacity'] ?? 1,
+      patientId: json['patientId'],
+    );
   }
 
-  bool isValidBedCount() {
-    return bedCount > 0 && bedCount <= 10;
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'roomNumber': roomNumber,
+      'type': type.name,
+      'status': status.name,
+      'bedCount': bedCount,
+      'patientId': patientId,
+    };
   }
 
-  bool isValidPrice() {
-    return pricePerDay >= 0;
-  }
-
-  //methods
-  bool isAvailable() {
-    return status == RoomStatus.available && currentPatientId == null;
-  }
-
-  bool canAssignPatient() {
-    return isAvailable();
-  }
-
-  void assignPatient(String patientId) {
-    if (!canAssignPatient()) {
-      throw StateError('Room is not available for assignment');
+  void displayInfo() {
+    print('Room ID: $id');
+    print('Room Number: $roomNumber');
+    print('Type: ${type.name}');
+    print('Status: ${status.name}');
+    print('Bed Count: $bedCount');
+    if (patientId != null) {
+      print('Assigned Patient: $patientId');
     }
-    currentPatientId = patientId;
-    status = RoomStatus.occupied;
   }
-
-  void releasePatient() {
-    if (status != RoomStatus.occupied) {
-      throw StateError('Room is not occupied');
-    }
-    currentPatientId = null;
-    status = RoomStatus.available;
-  }
-
-  void setMaintenance() {
-    if (status == RoomStatus.occupied) {
-      throw StateError('Cannot set occupied room to maintenance');
-    }
-    status = RoomStatus.maintenance;
-    currentPatientId = null;
-  }
-
-  String getDisplayInfo() {
-    return 'Room $roomNumber (${type.displayName}) - ${status.displayName} - \$${pricePerDay.toStringAsFixed(2)}/day';
-  }
-
-  @override
-  String toString() {
-    return 'Room(id: $id, number: $roomNumber, type: ${type.displayName}, '
-        'status: ${status.displayName}, beds: $bedCount, price: \$${pricePerDay.toStringAsFixed(2)})';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Room && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
 }

@@ -1,77 +1,63 @@
+import 'user.dart';
+import '../enums/user_role.dart';
 import '../enums/gender.dart';
-import '../enums/shift.dart';
 
-class Doctor {
-  final String id;
-  final String name;
+class Doctor extends User {
   final String specialization;
   final String department;
-  final Shift shift;
-  final String phoneNumber;
-  final String email;
-  final Gender gender;
-  final int yearsOfExperience;
-  final DateTime createdAt;
+  final String
+  shift; // e.g., "Morning (8:00-16:00)", "Evening (16:00-24:00)", "Night (24:00-8:00)"
 
   Doctor({
-    required this.id,
-    required this.name,
+    required super.id,
+    required super.username,
+    required super.password,
+    required super.name,
+    required super.gender,
+    required super.phone,
+    required super.email,
     required this.specialization,
     required this.department,
-    required this.shift,
-    required this.phoneNumber,
-    required this.email,
-    required this.gender,
-    required this.yearsOfExperience,
-    required this.createdAt,
-  });
+    this.shift = 'Morning (8:00-16:00)', // Default shift
+  }) : super(role: UserRole.doctor);
 
-  // Validation methods
-  bool isValidName() {
-    return name.isNotEmpty && name.length >= 2;
-  }
-
-  bool isValidEmail() {
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    return emailRegex.hasMatch(email);
-  }
-
-  bool isValidPhoneNumber() {
-    final phoneRegex = RegExp(r'^\d{8,15}$');
-    return phoneRegex.hasMatch(
-      phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), ''),
+  factory Doctor.fromJson(Map<String, dynamic> json) {
+    return Doctor(
+      id: json['id'],
+      username: json['username'],
+      password: json['password'],
+      name: json['name'],
+      gender: Gender.values.firstWhere((e) => e.name == json['gender']),
+      phone: json['phone'] ?? json['phoneNumber'] ?? '',
+      email: json['email'],
+      specialization: json['specialization'],
+      department: json['department'] ?? json['licenseNumber'] ?? 'N/A',
+      shift: json['shift'] ?? 'Morning (8:00-16:00)',
     );
   }
 
-  bool isValidExperience() {
-    return yearsOfExperience >= 0 && yearsOfExperience <= 60;
-  }
-
-  bool isValidDepartment() {
-    return department.isNotEmpty;
-  }
-
-  bool isValidShift() {
-    return true; // Always valid since it's an enum
-  }
-
-  String getDisplayInfo() {
-    return 'Dr. $name - $specialization, $department (${shift.displayName}) (${yearsOfExperience} years exp.)';
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'password': password,
+      'name': name,
+      'gender': gender.name,
+      'phone': phone,
+      'email': email,
+      'role': role.name,
+      'specialization': specialization,
+      'department': department,
+      'shift': shift,
+    };
   }
 
   @override
-  String toString() {
-    return 'Doctor(id: $id, name: $name, specialization: $specialization, '
-        'department: $department, shift: ${shift.displayName}, '
-        'gender: ${gender.displayName}, experience: $yearsOfExperience years)';
+  void displayInfo() {
+    super.displayInfo();
+    print('Specialization: $specialization');
+    print('Department: $department');
+    print('Shift: $shift');
   }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Doctor && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
 }

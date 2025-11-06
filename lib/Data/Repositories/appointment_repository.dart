@@ -1,117 +1,65 @@
 import '../../Domain/models/appointment.dart';
 import '../../Domain/enums/appointment_status.dart';
 import '../Storage/json_storage.dart';
-import '../JsonConverter/appointment_converter.dart';
 
 class AppointmentRepository {
-  final JsonStorage _storage;
-  final String _fileName = 'appointments.json';
+  final JsonStorage _storage = JsonStorage('appointments.json');
 
-  AppointmentRepository(this._storage);
-
-  // Get all appointments
-  Future<List<Appointment>> getAll() async {
-    final jsonList = await _storage.readJsonFile(_fileName);
-    return AppointmentConverter.fromJsonList(jsonList);
+  void addAppointment(Appointment appointment) {
+    final appointments = _storage.read();
+    appointments.add(appointment.toJson());
+    _storage.write(appointments);
   }
 
-  // Get appointment by ID
-  Future<Appointment?> getById(String id) async {
-    final appointments = await getAll();
+  List<Appointment> getAllAppointments() {
+    final appointments = _storage.read();
+    return appointments.map((json) => Appointment.fromJson(json)).toList();
+  }
+
+  Appointment? getAppointmentById(String id) {
+    final appointments = getAllAppointments();
     try {
-      return appointments.firstWhere((appointment) => appointment.id == id);
+      return appointments.firstWhere((a) => a.id == id);
     } catch (e) {
       return null;
     }
   }
 
-  // Get appointments by patient ID
-  Future<List<Appointment>> getByPatientId(String patientId) async {
-    final appointments = await getAll();
-    return appointments
-        .where((appointment) => appointment.patientId == patientId)
-        .toList();
+  List<Appointment> getAppointmentsByDoctorId(String doctorId) {
+    final appointments = getAllAppointments();
+    return appointments.where((a) => a.doctorId == doctorId).toList();
   }
 
-  // Get appointments by doctor ID
-  Future<List<Appointment>> getByDoctorId(String doctorId) async {
-    final appointments = await getAll();
-    return appointments
-        .where((appointment) => appointment.doctorId == doctorId)
-        .toList();
+  List<Appointment> getAppointmentsByPatientId(String patientId) {
+    final appointments = getAllAppointments();
+    return appointments.where((a) => a.patientId == patientId).toList();
   }
 
-  // Get appointments by status
-  Future<List<Appointment>> getByStatus(AppointmentStatus status) async {
-    final appointments = await getAll();
-    return appointments
-        .where((appointment) => appointment.status == status)
-        .toList();
-  }
-
-  // Get appointments by date
-  Future<List<Appointment>> getByDate(DateTime date) async {
-    final appointments = await getAll();
-    return appointments.where((appointment) {
-      final appointmentDate = appointment.appointmentDate;
-      return appointmentDate.year == date.year &&
-          appointmentDate.month == date.month &&
-          appointmentDate.day == date.day;
-    }).toList();
-  }
-
-  // Get upcoming appointments
-  Future<List<Appointment>> getUpcomingAppointments() async {
-    final appointments = await getAll();
+  List<Appointment> getUpcomingAppointmentsByDoctorId(String doctorId) {
+    final appointments = getAppointmentsByDoctorId(doctorId);
     final now = DateTime.now();
     return appointments
         .where(
-          (appointment) =>
-              appointment.appointmentDate.isAfter(now) &&
-              appointment.status == AppointmentStatus.scheduled,
+          (a) =>
+              a.dateTime.isAfter(now) &&
+              a.status == AppointmentStatus.scheduled,
         )
-        .toList();
+        .toList()
+      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
   }
 
-  // Save (create or update) an appointment
-  Future<void> save(Appointment appointment) async {
-    final appointments = await getAll();
-
-    // Check if appointment already exists
-    final existingIndex = appointments.indexWhere(
-      (a) => a.id == appointment.id,
-    );
-
-    if (existingIndex != -1) {
-      // Update existing appointment
-      appointments[existingIndex] = appointment;
-    } else {
-      // Add new appointment
-      appointments.add(appointment);
+  void updateAppointment(Appointment appointment) {
+    final appointments = _storage.read();
+    final index = appointments.indexWhere((a) => a['id'] == appointment.id);
+    if (index != -1) {
+      appointments[index] = appointment.toJson();
+      _storage.write(appointments);
     }
-
-    final jsonList = AppointmentConverter.toJsonList(appointments);
-    await _storage.writeJsonFile(_fileName, jsonList);
   }
 
-  // Delete appointment by ID
-  Future<bool> delete(String id) async {
-    final appointments = await getAll();
-    final initialLength = appointments.length;
-
-    appointments.removeWhere((appointment) => appointment.id == id);
-
-    if (appointments.length < initialLength) {
-      final jsonList = AppointmentConverter.toJsonList(appointments);
-      await _storage.writeJsonFile(_fileName, jsonList);
-      return true;
-    }
-
-    return false;
-  }
-
-  // Clear all appointments
-  Future<void> clear() async {
-    await _storage.clearJsonFile(_fileName);
+  void deleteAppointment(String id) {
+    final appointments = _storage.read();
+    appointments.removeWhere((a) => a['id'] == id);
+    _storage.write(appointments);
   }
 }

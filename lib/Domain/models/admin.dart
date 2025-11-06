@@ -1,32 +1,41 @@
 import 'user.dart';
 import '../enums/user_role.dart';
+import '../enums/gender.dart';
 
 class Admin extends User {
-  final String fullName;
-  final String email;
-
   Admin({
     required super.id,
     required super.username,
     required super.password,
-    required super.createdAt,
-    required this.fullName,
-    required this.email,
+    required super.name,
+    required super.gender,
+    required super.phone,
+    required super.email,
   }) : super(role: UserRole.admin);
 
-  @override
-  String getPermissions() {
-    return 'Full Access: Manage Receptionists, Doctors, Rooms, Patients, Appointments';
+  factory Admin.fromJson(Map<String, dynamic> json) {
+    return Admin(
+      id: json['id'],
+      username: json['username'],
+      password: json['password'],
+      name: json['name'],
+      gender: Gender.values.firstWhere((e) => e.name == json['gender']),
+      phone: json['phone'],
+      email: json['email'],
+    );
   }
 
-  // Admin-specific validation
-  bool isValidEmail() {
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    return emailRegex.hasMatch(email);
-  }
-
   @override
-  String toString() {
-    return 'Admin(id: $id, username: $username, name: $fullName, email: $email)';
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'password': password,
+      'name': name,
+      'gender': gender.name,
+      'phone': phone,
+      'email': email,
+      'role': role.name,
+    };
   }
 }

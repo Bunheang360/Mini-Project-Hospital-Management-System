@@ -1,5 +1,6 @@
 import 'UI/console_app.dart';
-void main() async {
+
+void main() {
   final app = ConsoleApp();
-  await app.run();
+  app.run();
 }
