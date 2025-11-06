@@ -19,6 +19,7 @@ class ReceptionistMenu {
   final AppointmentService _appointmentService;
   final UserService _userService;
   final RoomService _roomService;
+  final uuid = const Uuid();
 
   ReceptionistMenu(
     this._currentUser,
@@ -100,8 +101,11 @@ class ReceptionistMenu {
 
   void _addPatient() {
     print('\n--- ADD PATIENT ---');
-    stdout.write('Enter Patient ID (e.g., PAT001): ');
-    final id = stdin.readLineSync() ?? '';
+
+    // Auto-generate Patient ID
+    final id = 'PAT-${uuid.v4().substring(0, 8).toUpperCase()}';
+    print('Generated Patient ID: $id');
+
     stdout.write('Enter Name: ');
     final name = stdin.readLineSync() ?? '';
     print('Select Gender: 1. Male  2. Female  3. Other');
@@ -489,7 +493,6 @@ class ReceptionistMenu {
     print('\n--- CREATE APPOINTMENT ---');
 
     // Generate UUID for appointment ID
-    const uuid = Uuid();
     final id = 'APT-${uuid.v4().substring(0, 8).toUpperCase()}';
     print('Generated Appointment ID: $id');
 

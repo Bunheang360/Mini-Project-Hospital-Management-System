@@ -1,5 +1,6 @@
 // lib/UI/menus/admin_menu.dart
 import 'dart:io';
+import 'package:uuid/uuid.dart';
 import '../../Domain/models/user.dart';
 import '../../Domain/models/doctor.dart';
 import '../../Domain/models/receptionist.dart';
@@ -18,6 +19,7 @@ class AdminMenu {
   final UserService _userService;
   final RoomService _roomService;
   final StatisticsService _statsService;
+  final uuid = const Uuid();
 
   AdminMenu(
     this._currentUser,
@@ -114,8 +116,11 @@ class AdminMenu {
 
   void _addDoctor() {
     print('\n--- ADD DOCTOR ---');
-    stdout.write('Enter ID (e.g., DOC001): ');
-    final id = stdin.readLineSync() ?? '';
+
+    // Auto-generate Doctor ID
+    final id = 'DOC-${uuid.v4().substring(0, 8).toUpperCase()}';
+    print('Generated Doctor ID: $id');
+
     stdout.write('Enter Username: ');
     final username = stdin.readLineSync() ?? '';
     stdout.write('Enter Password (min 6 characters): ');
@@ -549,8 +554,11 @@ class AdminMenu {
 
   void _addReceptionist() {
     print('\n--- ADD RECEPTIONIST ---');
-    stdout.write('Enter ID (e.g., REC001): ');
-    final id = stdin.readLineSync() ?? '';
+
+    // Auto-generate Receptionist ID
+    final id = 'REC-${uuid.v4().substring(0, 8).toUpperCase()}';
+    print('Generated Receptionist ID: $id');
+
     stdout.write('Enter Username: ');
     final username = stdin.readLineSync() ?? '';
     stdout.write('Enter Password (min 6 characters): ');
