@@ -32,7 +32,7 @@ class MainMenu {
   void display() {
     while (true) {
       ConsoleUtils.clearScreen();
-      print('\n' + '=' * 50);
+      print('\n${'=' * 50}');
       print('HOSPITAL MANAGEMENT SYSTEM');
       print('=' * 50);
       print('1. Login');

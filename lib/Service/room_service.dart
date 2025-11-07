@@ -117,7 +117,6 @@ class RoomService {
       return false;
     }
 
-    // Don't delete occupied rooms
     if (room.status == RoomStatus.occupied) {
       return false;
     }
@@ -129,11 +128,11 @@ class RoomService {
   Map<RoomStatus, int> getRoomStatistics() {
     final rooms = _repository.getAllRooms();
     final stats = <RoomStatus, int>{};
-    
+
     for (var status in RoomStatus.values) {
       stats[status] = rooms.where((r) => r.status == status).length;
     }
-    
+
     return stats;
   }
 

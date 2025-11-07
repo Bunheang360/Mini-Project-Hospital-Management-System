@@ -22,16 +22,25 @@ class Doctor extends User {
   }) : super(role: UserRole.doctor);
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
+    // Validate required fields exist
+    if (json['phone'] == null && json['phoneNumber'] == null) {
+      throw ArgumentError('Phone number is required');
+    }
+    
+    if (json['department'] == null && json['licenseNumber'] == null) {
+      throw ArgumentError('Department is required');
+    }
+
     return Doctor(
       id: json['id'],
       username: json['username'],
       password: json['password'],
       name: json['name'],
       gender: Gender.values.firstWhere((e) => e.name == json['gender']),
-      phone: json['phone'] ?? json['phoneNumber'] ?? '',
+      phone: json['phone'] ?? json['phoneNumber']!,
       email: json['email'],
       specialization: json['specialization'],
-      department: json['department'] ?? json['licenseNumber'] ?? 'N/A',
+      department: json['department'] ?? json['licenseNumber']!,
       shift: Shift.values.firstWhere(
         (e) => e.name == json['shift'],
         orElse: () => Shift.morning,
@@ -63,5 +72,4 @@ class Doctor extends User {
     print('Department: $department');
     print('Shift: ${shift.displayName}');
   }
-
 }

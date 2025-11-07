@@ -1,6 +1,5 @@
 import '../Domain/models/doctor.dart';
 import '../Domain/models/receptionist.dart';
-import '../Domain/models/user.dart';
 import '../Domain/enums/gender.dart';
 import '../Domain/enums/shift.dart';
 import '../Data/Repositories/user_repository.dart';
@@ -23,7 +22,6 @@ class UserService {
     required String department,
     Shift shift = Shift.morning,
   }) {
-
     if (_repository.isUsernameExists(username)) {
       return false;
     }
@@ -42,8 +40,8 @@ class UserService {
     );
 
     if (!doctor.validate()) {
-    return false;
-  }
+      return false;
+    }
 
     _repository.addDoctor(doctor);
     return true;
@@ -60,17 +58,20 @@ class UserService {
   List<Doctor> searchDoctorsBySpecialization(String specialization) {
     final doctors = _repository.getAllDoctors();
     return doctors
-        .where((d) => d.specialization
-            .toLowerCase()
-            .contains(specialization.toLowerCase()))
+        .where(
+          (d) => d.specialization.toLowerCase().contains(
+            specialization.toLowerCase(),
+          ),
+        )
         .toList();
   }
 
   List<Doctor> filterDoctorsByDepartment(String department) {
     final doctors = _repository.getAllDoctors();
     return doctors
-        .where((d) =>
-            d.department.toLowerCase().contains(department.toLowerCase()))
+        .where(
+          (d) => d.department.toLowerCase().contains(department.toLowerCase()),
+        )
         .toList();
   }
 
@@ -83,11 +84,11 @@ class UserService {
     if (_repository.getDoctorById(doctor.id) == null) {
       return false;
     }
-    
+
     if (!doctor.validate()) {
       return false;
     }
-    
+
     _repository.updateDoctor(doctor);
     return true;
   }
@@ -111,7 +112,6 @@ class UserService {
     required String email,
     required Shift shift,
   }) {
-
     if (_repository.isUsernameExists(username)) {
       return false;
     }
@@ -152,11 +152,11 @@ class UserService {
     if (_repository.getReceptionistById(receptionist.id) == null) {
       return false;
     }
-    
+
     if (!receptionist.validate()) {
       return false;
     }
-    
+
     _repository.updateReceptionist(receptionist);
     return true;
   }

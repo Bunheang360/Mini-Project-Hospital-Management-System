@@ -39,11 +39,6 @@ class AppointmentService {
       return false;
     }
 
-    // Check if appointment is in the past
-    if (dateTime.isBefore(DateTime.now())) {
-      return false;
-    }
-
     final appointment = Appointment(
       id: id,
       patientId: patientId,
@@ -54,6 +49,7 @@ class AppointmentService {
       notes: notes,
     );
 
+    // validate() now includes datetime check
     if (!appointment.validate()) {
       return false;
     }
@@ -97,7 +93,8 @@ class AppointmentService {
         .where((a) =>
             a.doctorId == doctorId &&
             a.dateTime.isAfter(now) &&
-            a.isScheduled()).toList();
+            a.isScheduled())
+        .toList();
   }
 
   List<Appointment> getTodayAppointments(String doctorId) {

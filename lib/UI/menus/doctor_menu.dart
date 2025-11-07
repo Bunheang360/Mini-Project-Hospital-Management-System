@@ -15,7 +15,7 @@ class DoctorMenu {
   void display() {
     while (true) {
       ConsoleUtils.clearScreen();
-      print('\n' + '=' * 50);
+      print('\n${'=' * 50}');
       print('DOCTOR MENU - ${_currentUser.name}');
       print('=' * 50);
       print('1. View Upcoming Appointments');
@@ -79,7 +79,7 @@ class DoctorMenu {
 
   void _displayAppointments(List appointments) {
     for (var appointment in appointments) {
-      print('\n' + '-' * 40);
+      print('\n${'-' * 40}');
       appointment.displayInfo();
 
       final patient = _patientService.getPatientById(appointment.patientId);

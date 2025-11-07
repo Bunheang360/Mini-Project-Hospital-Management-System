@@ -1,17 +1,16 @@
 import 'package:test/test.dart';
-import '../lib/Domain/models/admin.dart';
-import '../lib/Domain/models/doctor.dart';
-import '../lib/Domain/models/patient.dart';
-import '../lib/Domain/models/appointment.dart';
-import '../lib/Domain/enums/gender.dart';
-import '../lib/Domain/enums/appointment_status.dart';
-import '../lib/Data/Repositories/user_repository.dart';
-import '../lib/Data/Repositories/patient_repository.dart';
-import '../lib/Data/Repositories/appointment_repository.dart';
-import '../lib/Service/auth_service.dart';
-import '../lib/Service/user_service.dart';
-import '../lib/Service/patient_service.dart';
-import '../lib/Service/appointment_service.dart';
+import 'package:hbs_mini_project/Domain/models/admin.dart';
+import 'package:hbs_mini_project/Domain/models/patient.dart';
+import 'package:hbs_mini_project/Domain/models/appointment.dart';
+import 'package:hbs_mini_project/Domain/enums/gender.dart';
+import 'package:hbs_mini_project/Domain/enums/appointment_status.dart';
+import 'package:hbs_mini_project/Data/Repositories/user_repository.dart';
+import 'package:hbs_mini_project/Data/Repositories/patient_repository.dart';
+import 'package:hbs_mini_project/Data/Repositories/appointment_repository.dart';
+import 'package:hbs_mini_project/Service/auth_service.dart';
+import 'package:hbs_mini_project/Service/user_service.dart';
+import 'package:hbs_mini_project/Service/patient_service.dart';
+import 'package:hbs_mini_project/Service/appointment_service.dart';
 
 void main() {
   group('Validation Function Tests', () {

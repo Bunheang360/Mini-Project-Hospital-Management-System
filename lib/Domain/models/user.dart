@@ -53,11 +53,11 @@ abstract class User {
 
   bool validate() {
     return isValidId() &&
-           isValidUsername() &&
-           isValidPassword() &&
-           isValidName() &&
-           isValidEmail() &&
-           isValidPhone();
+        isValidUsername() &&
+        isValidPassword() &&
+        isValidName() &&
+        isValidEmail() &&
+        isValidPhone();
   }
 
   void displayInfo() {

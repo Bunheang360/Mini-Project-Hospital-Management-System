@@ -19,7 +19,7 @@ class StatisticsService {
   );
 
   void displayAllStatistics() {
-    print('\n' + '=' * 50);
+    print('\n${'=' * 50}');
     print('HOSPITAL STATISTICS');
     print('=' * 50);
 

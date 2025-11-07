@@ -62,8 +62,11 @@ class Appointment {
     return reason.isNotEmpty && reason.length >= 3;
   }
 
+  // Updated validate() to include all validations
   bool validate() {
-    return isValidId() && isValidReason();
+    return isValidId() && 
+           isValidReason() && 
+           isValidDateTime();
   }
 
   // Instance helper methods

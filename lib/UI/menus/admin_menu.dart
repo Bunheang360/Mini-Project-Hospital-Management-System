@@ -29,7 +29,7 @@ class AdminMenu {
   void display() {
     while (true) {
       ConsoleUtils.clearScreen();
-      print('\n' + '=' * 50);
+      print('\n${'=' * 50}');
       print('ADMIN MENU - ${_currentUser.name}');
       print('=' * 50);
       print('1. Manage Doctors');
@@ -188,7 +188,7 @@ class AdminMenu {
     }
     print('\n--- ALL DOCTORS ---');
     for (var doctor in doctors) {
-      print('\n' + '-' * 40);
+      print('\n${'-' * 40}');
       doctor.displayInfo();
     }
     print('-' * 40);
@@ -215,7 +215,7 @@ class AdminMenu {
     print('\n--- SEARCH RESULTS ---');
     print('Found ${matchingDoctors.length} doctor(s):');
     for (var doctor in matchingDoctors) {
-      print('\n' + '-' * 40);
+      print('\n${'-' * 40}');
       doctor.displayInfo();
     }
     print('-' * 40);
@@ -241,7 +241,7 @@ class AdminMenu {
     print('\n--- SEARCH RESULTS ---');
     print('Found ${matchingDoctors.length} doctor(s):');
     for (var doctor in matchingDoctors) {
-      print('\n' + '-' * 40);
+      print('\n${'-' * 40}');
       doctor.displayInfo();
     }
     print('-' * 40);
@@ -627,7 +627,7 @@ class AdminMenu {
     }
     print('\n--- ALL RECEPTIONISTS ---');
     for (var r in receptionists) {
-      print('\n' + '-' * 40);
+      print('\n${'-' * 40}');
       r.displayInfo();
     }
     print('-' * 40);
@@ -654,7 +654,7 @@ class AdminMenu {
     print('\n--- SEARCH RESULTS ---');
     print('Found ${matchingRecs.length} receptionist(s):');
     for (var receptionist in matchingRecs) {
-      print('\n' + '-' * 40);
+      print('\n${'-' * 40}');
       receptionist.displayInfo();
     }
     print('-' * 40);
@@ -953,7 +953,7 @@ class AdminMenu {
     }
     print('\n--- ALL ROOMS ---');
     for (var room in rooms) {
-      print('\n' + '-' * 40);
+      print('\n${'-' * 40}');
       room.displayInfo();
     }
     print('-' * 40);

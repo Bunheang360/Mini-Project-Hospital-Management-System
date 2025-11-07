@@ -31,7 +31,7 @@ class ReceptionistMenu {
   void display() {
     while (true) {
       ConsoleUtils.clearScreen();
-      print('\n' + '=' * 50);
+      print('\n${'=' * 50}');
       print('RECEPTIONIST MENU - ${_currentUser.name}');
       print('=' * 50);
       print('1. Manage Patients');
@@ -158,7 +158,7 @@ class ReceptionistMenu {
     }
     print('\n--- ALL PATIENTS ---');
     for (var patient in patients) {
-      print('\n' + '-' * 40);
+      print('\n${'-' * 40}');
       patient.displayInfo();
     }
     print('-' * 40);
@@ -719,7 +719,7 @@ class ReceptionistMenu {
     }
     print('\n--- ALL APPOINTMENTS ---');
     for (var appointment in appointments) {
-      print('\n' + '-' * 40);
+      print('\n${'-' * 40}');
       appointment.displayInfo();
 
       final patient = _patientService.getPatientById(appointment.patientId);
