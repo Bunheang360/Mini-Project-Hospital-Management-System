@@ -10,7 +10,7 @@ import 'package:hbs_mini_project/Data/Repositories/user_repository.dart';
 import 'package:hbs_mini_project/Data/Repositories/patient_repository.dart';
 import 'package:hbs_mini_project/Data/Repositories/appointment_repository.dart';
 import 'package:hbs_mini_project/Data/Repositories/room_repository.dart';
-import 'package:hbs_mini_project/Service/auth_service.dart';
+import 'package:hbs_mini_project/Data/Storage/json_storage.dart';
 import 'package:hbs_mini_project/Service/user_service.dart';
 import 'package:hbs_mini_project/Service/patient_service.dart';
 import 'package:hbs_mini_project/Service/appointment_service.dart';
@@ -26,9 +26,16 @@ void main() {
     late PatientService patientService;
     late AppointmentService appointmentService;
     late RoomService roomService;
-    late AuthenticationService authService;
 
     setUp(() {
+      // Clear all storage files before each test
+      JsonStorage('admins.json').clear();
+      JsonStorage('doctors.json').clear();
+      JsonStorage('receptionists.json').clear();
+      JsonStorage('patients.json').clear();
+      JsonStorage('appointments.json').clear();
+      JsonStorage('rooms.json').clear();
+
       userRepo = UserRepository();
       patientRepo = PatientRepository();
       appointmentRepo = AppointmentRepository();
@@ -42,154 +49,173 @@ void main() {
         userRepo,
       );
       roomService = RoomService(roomRepo);
-      authService = AuthenticationService(userRepo);
     });
 
-    test('should validate user fields correctly for valid and invalid inputs', () {
-      // Create test user instance for validation
-      final validUser = Admin(
-        id: 'ADM001',
-        username: 'admin_user',
-        password: 'Pass123',
-        name: 'Test Admin',
-        gender: Gender.male,
-        phone: '1234567890',
-        email: 'admin@test.com',
-      );
-
-      final invalidUser = Admin(
-        id: 'A1',
-        username: 'ab',
-        password: '123',
-        name: 'T',
-        gender: Gender.male,
-        phone: '123',
-        email: 'invalid-email',
-      );
-
-      // Test valid user
-      expect(validUser.isValidEmail(), isTrue);
-      expect(validUser.isValidPhone(), isTrue);
-      expect(validUser.isValidPassword(), isTrue);
-      expect(validUser.isValidUsername(), isTrue);
-      expect(validUser.isValidId(), isTrue);
-      expect(validUser.isValidName(), isTrue);
-
-      // Test invalid user
-      expect(invalidUser.isValidEmail(), isFalse);
-      expect(invalidUser.isValidPhone(), isFalse);
-      expect(invalidUser.isValidPassword(), isFalse);
-      expect(invalidUser.isValidUsername(), isFalse);
-      expect(invalidUser.isValidName(), isFalse);
+    tearDown(() {
+      // Clear all storage files after each test
+      JsonStorage('admins.json').clear();
+      JsonStorage('doctors.json').clear();
+      JsonStorage('receptionists.json').clear();
+      JsonStorage('patients.json').clear();
+      JsonStorage('appointments.json').clear();
+      JsonStorage('rooms.json').clear();
     });
 
-    test('should validate appointment fields and check date/time helper functions', () {
-      final futureAppointment = Appointment(
-        id: 'APT001',
-        patientId: 'PAT001',
-        doctorId: 'DOC001',
-        dateTime: DateTime.now().add(Duration(days: 1)),
-        reason: 'Regular checkup',
-      );
+    test(
+      'should validate user fields correctly for valid and invalid inputs',
+      () {
+        // Create test user instance for validation
+        final validUser = Admin(
+          id: 'ADM001',
+          username: 'admin_user',
+          password: 'Pass123',
+          name: 'Test Admin',
+          gender: Gender.male,
+          phone: '1234567890',
+          email: 'admin@test.com',
+        );
 
-      final pastAppointment = Appointment(
-        id: 'APT002',
-        patientId: 'PAT002',
-        doctorId: 'DOC001',
-        dateTime: DateTime.now().subtract(Duration(days: 1)),
-        reason: 'Follow-up',
-      );
+        final invalidUser = Admin(
+          id: 'A1',
+          username: 'ab',
+          password: '123',
+          name: 'T',
+          gender: Gender.male,
+          phone: '123',
+          email: 'invalid-email',
+        );
 
-      // Test validation functions
-      expect(futureAppointment.isValidId(), isTrue);
-      expect(futureAppointment.isValidReason(), isTrue);
-      expect(futureAppointment.isValidDateTime(), isTrue);
+        // Test valid user
+        expect(validUser.isValidEmail(), isTrue);
+        expect(validUser.isValidPhone(), isTrue);
+        expect(validUser.isValidPassword(), isTrue);
+        expect(validUser.isValidUsername(), isTrue);
+        expect(validUser.isValidId(), isTrue);
+        expect(validUser.isValidName(), isTrue);
 
-      // Test helper functions
-      expect(futureAppointment.isFuture(), isTrue);
-      expect(futureAppointment.isPast(), isFalse);
-      expect(futureAppointment.isScheduled(), isTrue);
+        // Test invalid user
+        expect(invalidUser.isValidEmail(), isFalse);
+        expect(invalidUser.isValidPhone(), isFalse);
+        expect(invalidUser.isValidPassword(), isFalse);
+        expect(invalidUser.isValidUsername(), isFalse);
+        expect(invalidUser.isValidName(), isFalse);
+      },
+    );
 
-      expect(pastAppointment.isPast(), isTrue);
-      expect(pastAppointment.isFuture(), isFalse);
-      expect(pastAppointment.isValidDateTime(), isFalse);
-    });
+    test(
+      'should validate appointment fields and check date/time helper functions',
+      () {
+        final futureAppointment = Appointment(
+          id: 'APT001',
+          patientId: 'PAT001',
+          doctorId: 'DOC001',
+          dateTime: DateTime.now().add(Duration(days: 1)),
+          reason: 'Regular checkup',
+        );
 
-    test('should filter appointments by patient ID and doctor ID correctly', () {
-      // Setup: Add doctor and patients
-      userService.addDoctor(
-        id: 'DOC_FILTER001',
-        username: 'dr_filter',
-        password: 'Pass123',
-        name: 'Filter Doctor',
-        gender: Gender.male,
-        phone: '1111111111',
-        email: 'filterdoc@test.com',
-        specialization: 'General',
-        department: 'General Medicine',
-      );
+        final pastAppointment = Appointment(
+          id: 'APT002',
+          patientId: 'PAT002',
+          doctorId: 'DOC001',
+          dateTime: DateTime.now().subtract(Duration(days: 1)),
+          reason: 'Follow-up',
+        );
 
-      patientService.addPatient(
-        id: 'PAT_FILTER001',
-        name: 'Filter Patient 1',
-        gender: Gender.male,
-        age: 30,
-        phoneNumber: '2222222222',
-        address: 'Address 1',
-      );
+        // Test validation functions
+        expect(futureAppointment.isValidId(), isTrue);
+        expect(futureAppointment.isValidReason(), isTrue);
+        expect(futureAppointment.isValidDateTime(), isTrue);
 
-      patientService.addPatient(
-        id: 'PAT_FILTER002',
-        name: 'Filter Patient 2',
-        gender: Gender.female,
-        age: 25,
-        phoneNumber: '3333333333',
-        address: 'Address 2',
-      );
+        // Test helper functions
+        expect(futureAppointment.isFuture(), isTrue);
+        expect(futureAppointment.isPast(), isFalse);
+        expect(futureAppointment.isScheduled(), isTrue);
 
-      // Create appointments
-      appointmentService.createAppointment(
-        id: 'APT_FILTER001',
-        patientId: 'PAT_FILTER001',
-        doctorId: 'DOC_FILTER001',
-        dateTime: DateTime.now().add(Duration(days: 1)),
-        reason: 'Checkup',
-      );
+        expect(pastAppointment.isPast(), isTrue);
+        expect(pastAppointment.isFuture(), isFalse);
+        expect(pastAppointment.isValidDateTime(), isFalse);
+      },
+    );
 
-      appointmentService.createAppointment(
-        id: 'APT_FILTER002',
-        patientId: 'PAT_FILTER002',
-        doctorId: 'DOC_FILTER001',
-        dateTime: DateTime.now().add(Duration(days: 2)),
-        reason: 'Follow-up',
-      );
+    test(
+      'should filter appointments by patient ID and doctor ID correctly',
+      () {
+        // Setup: Add doctor and patients
+        userService.addDoctor(
+          id: 'DOC_FILTER001',
+          username: 'dr_filter',
+          password: 'Pass123',
+          name: 'Filter Doctor',
+          gender: Gender.male,
+          phone: '1111111111',
+          email: 'filterdoc@test.com',
+          specialization: 'General',
+          department: 'General Medicine',
+        );
 
-      appointmentService.createAppointment(
-        id: 'APT_FILTER003',
-        patientId: 'PAT_FILTER001',
-        doctorId: 'DOC_FILTER001',
-        dateTime: DateTime.now().add(Duration(days: 3)),
-        reason: 'Surgery',
-      );
+        patientService.addPatient(
+          id: 'PAT_FILTER001',
+          name: 'Filter Patient 1',
+          gender: Gender.male,
+          age: 30,
+          phoneNumber: '2222222222',
+          address: 'Address 1',
+        );
 
-      // Test filter by patient
-      final patient1Appointments =
-          appointmentService.getAppointmentsByPatientId('PAT_FILTER001');
-      expect(patient1Appointments.length, equals(2));
+        patientService.addPatient(
+          id: 'PAT_FILTER002',
+          name: 'Filter Patient 2',
+          gender: Gender.female,
+          age: 25,
+          phoneNumber: '3333333333',
+          address: 'Address 2',
+        );
 
-      // Test filter by doctor
-      final doctorAppointments =
-          appointmentService.getAppointmentsByDoctorId('DOC_FILTER001');
-      expect(doctorAppointments.length, equals(3));
+        // Create appointments
+        appointmentService.createAppointment(
+          id: 'APT_FILTER001',
+          patientId: 'PAT_FILTER001',
+          doctorId: 'DOC_FILTER001',
+          dateTime: DateTime.now().add(Duration(days: 1)),
+          reason: 'Checkup',
+        );
 
-      // Cleanup
-      appointmentService.deleteAppointment('APT_FILTER001');
-      appointmentService.deleteAppointment('APT_FILTER002');
-      appointmentService.deleteAppointment('APT_FILTER003');
-      userService.deleteDoctor('DOC_FILTER001');
-      patientService.deletePatient('PAT_FILTER001');
-      patientService.deletePatient('PAT_FILTER002');
-    });
+        appointmentService.createAppointment(
+          id: 'APT_FILTER002',
+          patientId: 'PAT_FILTER002',
+          doctorId: 'DOC_FILTER001',
+          dateTime: DateTime.now().add(Duration(days: 2)),
+          reason: 'Follow-up',
+        );
+
+        appointmentService.createAppointment(
+          id: 'APT_FILTER003',
+          patientId: 'PAT_FILTER001',
+          doctorId: 'DOC_FILTER001',
+          dateTime: DateTime.now().add(Duration(days: 3)),
+          reason: 'Surgery',
+        );
+
+        // Test filter by patient
+        final patient1Appointments = appointmentService
+            .getAppointmentsByPatientId('PAT_FILTER001');
+        expect(patient1Appointments.length, equals(2));
+
+        // Test filter by doctor
+        final doctorAppointments = appointmentService.getAppointmentsByDoctorId(
+          'DOC_FILTER001',
+        );
+        expect(doctorAppointments.length, equals(3));
+
+        // Cleanup
+        appointmentService.deleteAppointment('APT_FILTER001');
+        appointmentService.deleteAppointment('APT_FILTER002');
+        appointmentService.deleteAppointment('APT_FILTER003');
+        userService.deleteDoctor('DOC_FILTER001');
+        patientService.deletePatient('PAT_FILTER001');
+        patientService.deletePatient('PAT_FILTER002');
+      },
+    );
 
     test('should calculate appointment statistics by status correctly', () {
       // Setup
@@ -311,28 +337,31 @@ void main() {
       userService.deleteDoctor('DOC_TEST001');
     });
 
-    test('should add a new patient and retrieve patient by ID successfully', () {
-      final success = patientService.addPatient(
-        id: 'PAT_TEST001',
-        name: 'Test Patient',
-        gender: Gender.female,
-        age: 34,
-        phoneNumber: '9876543210',
-        address: 'Test Address',
-        medicalHistory: 'None',
-      );
+    test(
+      'should add a new patient and retrieve patient by ID successfully',
+      () {
+        final success = patientService.addPatient(
+          id: 'PAT_TEST001',
+          name: 'Test Patient',
+          gender: Gender.female,
+          age: 34,
+          phoneNumber: '9876543210',
+          address: 'Test Address',
+          medicalHistory: 'None',
+        );
 
-      expect(success, isTrue);
+        expect(success, isTrue);
 
-      final patient = patientService.getPatientById('PAT_TEST001');
-      expect(patient, isNotNull);
-      expect(patient?.name, equals('Test Patient'));
-      expect(patient?.age, equals(34));
-      expect(patient?.gender, equals(Gender.female));
+        final patient = patientService.getPatientById('PAT_TEST001');
+        expect(patient, isNotNull);
+        expect(patient?.name, equals('Test Patient'));
+        expect(patient?.age, equals(34));
+        expect(patient?.gender, equals(Gender.female));
 
-      // Cleanup
-      patientService.deletePatient('PAT_TEST001');
-    });
+        // Cleanup
+        patientService.deletePatient('PAT_TEST001');
+      },
+    );
 
     test('should update patient information successfully', () {
       // Add patient first
@@ -470,60 +499,63 @@ void main() {
       patientService.deletePatient('PAT_TEST004');
     });
 
-    test('should add room, assign patient to room, and release room successfully', () {
-      // Test adding a room
-      final addRoomSuccess = roomService.addRoom(
-        id: 'RM_TEST001',
-        roomNumber: '101',
-        type: RoomType.general,
-        bedCount: 2,
-        status: RoomStatus.available,
-      );
+    test(
+      'should add room, assign patient to room, and release room successfully',
+      () {
+        // Test adding a room
+        final addRoomSuccess = roomService.addRoom(
+          id: 'RM_TEST001',
+          roomNumber: '101',
+          type: RoomType.general,
+          bedCount: 2,
+          status: RoomStatus.available,
+        );
 
-      expect(addRoomSuccess, isTrue);
+        expect(addRoomSuccess, isTrue);
 
-      final room = roomService.getRoomById('RM_TEST001');
-      expect(room, isNotNull);
-      expect(room?.roomNumber, equals('101'));
-      expect(room?.type, equals(RoomType.general));
-      expect(room?.bedCount, equals(2));
-      expect(room?.status, equals(RoomStatus.available));
-      expect(room?.isAvailable(), isTrue);
+        final room = roomService.getRoomById('RM_TEST001');
+        expect(room, isNotNull);
+        expect(room?.roomNumber, equals('101'));
+        expect(room?.type, equals(RoomType.general));
+        expect(room?.bedCount, equals(2));
+        expect(room?.status, equals(RoomStatus.available));
+        expect(room?.isAvailable(), isTrue);
 
-      // Add a patient
-      patientService.addPatient(
-        id: 'PAT_ROOM001',
-        name: 'Room Patient',
-        gender: Gender.male,
-        age: 45,
-        phoneNumber: '5555555555',
-        address: 'Test Address',
-      );
+        // Add a patient
+        patientService.addPatient(
+          id: 'PAT_ROOM001',
+          name: 'Room Patient',
+          gender: Gender.male,
+          age: 45,
+          phoneNumber: '5555555555',
+          address: 'Test Address',
+        );
 
-      // Test assigning patient to room
-      final assignSuccess = roomService.assignPatientToRoom(
-        'RM_TEST001',
-        'PAT_ROOM001',
-      );
-      expect(assignSuccess, isTrue);
+        // Test assigning patient to room
+        final assignSuccess = roomService.assignPatientToRoom(
+          'RM_TEST001',
+          'PAT_ROOM001',
+        );
+        expect(assignSuccess, isTrue);
 
-      final assignedRoom = roomService.getRoomById('RM_TEST001');
-      expect(assignedRoom?.status, equals(RoomStatus.occupied));
-      expect(assignedRoom?.patientId, equals('PAT_ROOM001'));
-      expect(assignedRoom?.isOccupied(), isTrue);
+        final assignedRoom = roomService.getRoomById('RM_TEST001');
+        expect(assignedRoom?.status, equals(RoomStatus.occupied));
+        expect(assignedRoom?.patientId, equals('PAT_ROOM001'));
+        expect(assignedRoom?.isOccupied(), isTrue);
 
-      // Test releasing room
-      final releaseSuccess = roomService.releaseRoom('RM_TEST001');
-      expect(releaseSuccess, isTrue);
+        // Test releasing room
+        final releaseSuccess = roomService.releaseRoom('RM_TEST001');
+        expect(releaseSuccess, isTrue);
 
-      final releasedRoom = roomService.getRoomById('RM_TEST001');
-      expect(releasedRoom?.status, equals(RoomStatus.available));
-      expect(releasedRoom?.patientId, isNull);
-      expect(releasedRoom?.isAvailable(), isTrue);
+        final releasedRoom = roomService.getRoomById('RM_TEST001');
+        expect(releasedRoom?.status, equals(RoomStatus.available));
+        expect(releasedRoom?.patientId, isNull);
+        expect(releasedRoom?.isAvailable(), isTrue);
 
-      // Cleanup
-      roomService.deleteRoom('101');
-      patientService.deletePatient('PAT_ROOM001');
-    });
+        // Cleanup
+        roomService.deleteRoom('101');
+        patientService.deletePatient('PAT_ROOM001');
+      },
+    );
   });
 }

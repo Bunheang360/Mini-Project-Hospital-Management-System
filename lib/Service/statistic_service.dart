@@ -31,7 +31,7 @@ class StatisticsService {
     print('  Receptionists: ${receptionists.length}');
     print(
       '  Total Staff: ${doctors.length + receptionists.length + 1}',
-    ); // +1 for admin
+    );
 
     // Patient statistics
     final patients = _patientService.getAllPatients();
