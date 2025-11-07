@@ -21,6 +21,16 @@ class Patient {
     required this.registrationDate,
   });
 
+  // Helper method to check if patient is a kid
+  bool isKid() {
+    return age < 18;
+  }
+
+  // Helper method to check if patient is elderly
+  bool isElderly() {
+    return age >= 65;
+  }
+
   // Validation methods
   bool isValidName() {
     return name.isNotEmpty && name.length >= 2;
@@ -40,6 +50,14 @@ class Patient {
   bool isValidAddress() {
     return address.isNotEmpty && address.length >= 5;
   }
+
+  bool validate() {
+    return isValidName() &&
+           isValidAge() &&
+           isValidPhoneNumber() &&
+           isValidAddress();
+  }
+
 
   String getDisplayInfo() {
     return '$name (${gender.name}, $age years) - $phoneNumber';
@@ -84,16 +102,6 @@ class Patient {
       print('Medical History: $medicalHistory');
     }
     print('Registration Date: ${registrationDate.toString().split(' ')[0]}');
-  }
-
-  // Helper method to check if patient is a kid
-  bool isKid() {
-    return age < 18;
-  }
-
-  // Helper method to check if patient is elderly
-  bool isElderly() {
-    return age >= 65;
   }
 
   @override

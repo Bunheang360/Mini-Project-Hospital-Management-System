@@ -40,6 +40,40 @@ class Room {
     };
   }
 
+  // Validation methods
+  bool isValidId() {
+    return id.isNotEmpty && id.length >= 3;
+  }
+
+  bool isValidBedCount() {
+    return bedCount > 0 && bedCount <= 10;
+  }
+
+  bool isValidRoomNumber() {
+    return roomNumber.isNotEmpty;
+  }
+
+  bool validate() {
+    return isValidId() && isValidBedCount() && isValidRoomNumber();
+  }
+
+  // Instance helper methods
+  bool isAvailable() {
+    return status == RoomStatus.available;
+  }
+
+  bool isOccupied() {
+    return status == RoomStatus.occupied;
+  }
+
+  bool isUnderMaintenance() {
+    return status == RoomStatus.maintenance;
+  }
+
+  bool hasPatient() {
+    return patientId != null;
+  }
+
   void displayInfo() {
     print('Room ID: $id');
     print('Room Number: $roomNumber');

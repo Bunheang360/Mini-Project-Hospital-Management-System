@@ -1,4 +1,3 @@
-// lib/UI/menus/admin_menu.dart
 import 'dart:io';
 import 'package:uuid/uuid.dart';
 import '../../Domain/models/user.dart';
@@ -11,7 +10,6 @@ import '../../Domain/enums/room_status.dart';
 import '../../Service/user_service.dart';
 import '../../Service/room_service.dart';
 import '../../Service/statistic_service.dart';
-import '../../Service/validation_service.dart';
 import '../utils/console_utils.dart';
 
 class AdminMenu {
@@ -24,7 +22,7 @@ class AdminMenu {
   AdminMenu(
     this._currentUser,
     this._userService,
-    this._roomService,
+    this._roomService, 
     this._statsService,
   );
 
@@ -144,18 +142,21 @@ class AdminMenu {
     stdout.write('Enter Department: ');
     final department = stdin.readLineSync() ?? '';
     print('\nSelect Shift:');
-    print('1. Morning (8:00-16:00)');
-    print('2. Evening (16:00-24:00)');
-    print('3. Night (24:00-8:00)');
-    stdout.write('Choice (1-3): ');
+    print('1. ${Shift.morning.displayName}');
+    print('2. ${Shift.afternoon.displayName}');
+    print('3. ${Shift.evening.displayName}');
+    print('4. ${Shift.night.displayName}');
+    stdout.write('Choice (1-4): ');
     final shiftChoice = stdin.readLineSync();
     final shift = shiftChoice == '1'
-        ? 'Morning (8:00-16:00)'
+        ? Shift.morning
         : shiftChoice == '2'
-        ? 'Evening (16:00-24:00)'
+        ? Shift.afternoon
         : shiftChoice == '3'
-        ? 'Night (24:00-8:00)'
-        : 'Morning (8:00-16:00)'; // Default
+        ? Shift.evening
+        : shiftChoice == '4'
+        ? Shift.night
+        : Shift.morning; // Default
 
     final success = _userService.addDoctor(
       id: id,
@@ -311,7 +312,7 @@ class AdminMenu {
         final newPassword = stdin.readLineSync() ?? '';
         if (newPassword == doctor.password) {
           print('\n✗ New password is the same as current password!');
-        } else if (ValidationService.isValidPassword(newPassword)) {
+        } else if (newPassword.length >= 6) {
           doctor.password = newPassword;
           updated = _userService.updateDoctor(doctor);
         } else {
@@ -323,7 +324,7 @@ class AdminMenu {
         final newPhone = stdin.readLineSync() ?? '';
         if (newPhone == doctor.phone) {
           print('\n✗ New phone is the same as current phone!');
-        } else if (ValidationService.isValidPhone(newPhone)) {
+        } else if (RegExp(r'^\d{10}$').hasMatch(newPhone)) {
           final updatedDoctor = Doctor(
             id: doctor.id,
             username: doctor.username,
@@ -346,7 +347,9 @@ class AdminMenu {
         final newEmail = stdin.readLineSync() ?? '';
         if (newEmail == doctor.email) {
           print('\n✗ New email is the same as current email!');
-        } else if (ValidationService.isValidEmail(newEmail)) {
+        } else if (RegExp(
+          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+        ).hasMatch(newEmail)) {
           final updatedDoctor = Doctor(
             id: doctor.id,
             username: doctor.username,
@@ -414,17 +417,20 @@ class AdminMenu {
         break;
       case '6':
         print('\nSelect new shift:');
-        print('1. Morning (8:00-16:00)');
-        print('2. Evening (16:00-24:00)');
-        print('3. Night (24:00-8:00)');
-        stdout.write('Choice (1-3): ');
+        print('1. ${Shift.morning.displayName}');
+        print('2. ${Shift.afternoon.displayName}');
+        print('3. ${Shift.evening.displayName}');
+        print('4. ${Shift.night.displayName}');
+        stdout.write('Choice (1-4): ');
         final shiftChoice = stdin.readLineSync();
         final newShift = shiftChoice == '1'
-            ? 'Morning (8:00-16:00)'
+            ? Shift.morning
             : shiftChoice == '2'
-            ? 'Evening (16:00-24:00)'
+            ? Shift.afternoon
             : shiftChoice == '3'
-            ? 'Night (24:00-8:00)'
+            ? Shift.evening
+            : shiftChoice == '4'
+            ? Shift.night
             : null;
 
         if (newShift == null) {
@@ -577,14 +583,22 @@ class AdminMenu {
     final phone = stdin.readLineSync() ?? '';
     stdout.write('Enter Email: ');
     final email = stdin.readLineSync() ?? '';
-    print('Select Shift: 1. Morning  2. Afternoon  3. Night');
-    stdout.write('Choice: ');
+    print('\nSelect Shift:');
+    print('1. ${Shift.morning.displayName}');
+    print('2. ${Shift.afternoon.displayName}');
+    print('3. ${Shift.evening.displayName}');
+    print('4. ${Shift.night.displayName}');
+    stdout.write('Choice (1-4): ');
     final shiftChoice = stdin.readLineSync();
     final shift = shiftChoice == '1'
         ? Shift.morning
         : shiftChoice == '2'
         ? Shift.afternoon
-        : Shift.night;
+        : shiftChoice == '3'
+        ? Shift.evening
+        : shiftChoice == '4'
+        ? Shift.night
+        : Shift.morning; // Default
 
     final success = _userService.addReceptionist(
       id: id,
@@ -705,7 +719,7 @@ class AdminMenu {
       case '1':
         stdout.write('Enter new password: ');
         final newPassword = stdin.readLineSync() ?? '';
-        if (!ValidationService.isValidPassword(newPassword)) {
+        if (newPassword.length < 6) {
           print('Invalid password! Must be at least 6 characters.');
         } else if (newPassword == rec.password) {
           print('New password is the same as the current password!');
@@ -726,7 +740,7 @@ class AdminMenu {
       case '2':
         stdout.write('Enter new phone number: ');
         final newPhone = stdin.readLineSync() ?? '';
-        if (!ValidationService.isValidPhone(newPhone)) {
+        if (!RegExp(r'^\d{10}$').hasMatch(newPhone)) {
           print('Invalid phone number! Must be 10 digits.');
         } else if (newPhone == rec.phone) {
           print('New phone number is the same as the current phone number!');
@@ -747,7 +761,7 @@ class AdminMenu {
       case '3':
         stdout.write('Enter new email: ');
         final newEmail = stdin.readLineSync() ?? '';
-        if (!ValidationService.isValidEmail(newEmail)) {
+        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(newEmail)) {
           print('Invalid email format!');
         } else if (newEmail == rec.email) {
           print('New email is the same as the current email!');
@@ -766,15 +780,25 @@ class AdminMenu {
         }
         break;
       case '4':
-        print('Select new shift: 1. Morning  2. Afternoon  3. Night');
-        stdout.write('Choice: ');
+        print('\nSelect new shift:');
+        print('1. ${Shift.morning.displayName}');
+        print('2. ${Shift.afternoon.displayName}');
+        print('3. ${Shift.evening.displayName}');
+        print('4. ${Shift.night.displayName}');
+        stdout.write('Choice (1-4): ');
         final shiftChoice = stdin.readLineSync();
         final newShift = shiftChoice == '1'
             ? Shift.morning
             : shiftChoice == '2'
             ? Shift.afternoon
-            : Shift.night;
-        if (newShift == rec.shift) {
+            : shiftChoice == '3'
+            ? Shift.evening
+            : shiftChoice == '4'
+            ? Shift.night
+            : null;
+        if (newShift == null) {
+          print('Invalid shift selection!');
+        } else if (newShift == rec.shift) {
           print('New shift is the same as the current shift!');
         } else {
           final updatedRec = Receptionist(

@@ -19,10 +19,6 @@ class RoomService {
       return false;
     }
 
-    if (bedCount <= 0) {
-      return false;
-    }
-
     final room = Room(
       id: id,
       roomNumber: roomNumber,
@@ -30,6 +26,10 @@ class RoomService {
       status: status,
       bedCount: bedCount,
     );
+
+    if (!room.validate()) {
+      return false;
+    }
 
     _repository.addRoom(room);
     return true;
@@ -44,12 +44,17 @@ class RoomService {
   }
 
   Room? getRoomByRoomNumber(String roomNumber) {
-    return _repository.getRoomByRoomNumber(roomNumber);
+    final rooms = _repository.getAllRooms();
+    try {
+      return rooms.firstWhere((r) => r.roomNumber == roomNumber);
+    } catch (e) {
+      return null;
+    }
   }
 
   List<Room> getAvailableRooms() {
     final rooms = _repository.getAllRooms();
-    return rooms.where((r) => r.status == RoomStatus.available).toList();
+    return rooms.where((r) => r.isAvailable()).toList();
   }
 
   List<Room> getRoomsByType(RoomType type) {
@@ -62,13 +67,18 @@ class RoomService {
     return rooms.where((r) => r.status == status).toList();
   }
 
+  List<Room> getOccupiedRooms() {
+    final rooms = _repository.getAllRooms();
+    return rooms.where((r) => r.isOccupied()).toList();
+  }
+
   bool assignPatientToRoom(String roomId, String patientId) {
     final room = _repository.getRoomById(roomId);
     if (room == null) {
       return false;
     }
 
-    if (room.status != RoomStatus.available) {
+    if (!room.isAvailable()) {
       return false;
     }
 
@@ -91,7 +101,7 @@ class RoomService {
   }
 
   bool updateRoomStatus(String roomNumber, RoomStatus status) {
-    final room = _repository.getRoomByRoomNumber(roomNumber);
+    final room = getRoomByRoomNumber(roomNumber);
     if (room == null) {
       return false;
     }
@@ -102,7 +112,7 @@ class RoomService {
   }
 
   bool deleteRoom(String roomNumber) {
-    final room = _repository.getRoomByRoomNumber(roomNumber);
+    final room = getRoomByRoomNumber(roomNumber);
     if (room == null) {
       return false;
     }
@@ -118,17 +128,13 @@ class RoomService {
 
   Map<RoomStatus, int> getRoomStatistics() {
     final rooms = _repository.getAllRooms();
-    return {
-      RoomStatus.available: rooms
-          .where((r) => r.status == RoomStatus.available)
-          .length,
-      RoomStatus.occupied: rooms
-          .where((r) => r.status == RoomStatus.occupied)
-          .length,
-      RoomStatus.maintenance: rooms
-          .where((r) => r.status == RoomStatus.maintenance)
-          .length,
-    };
+    final stats = <RoomStatus, int>{};
+    
+    for (var status in RoomStatus.values) {
+      stats[status] = rooms.where((r) => r.status == status).length;
+    }
+    
+    return stats;
   }
 
   int getTotalBedCount() {
@@ -137,7 +143,9 @@ class RoomService {
   }
 
   int getAvailableBedCount() {
-    final availableRooms = getAvailableRooms();
-    return availableRooms.fold(0, (sum, room) => sum + room.bedCount);
+    final rooms = _repository.getAllRooms();
+    return rooms
+        .where((r) => r.isAvailable())
+        .fold(0, (sum, room) => sum + room.bedCount);
   }
 }

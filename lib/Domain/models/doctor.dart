@@ -1,12 +1,12 @@
 import 'user.dart';
 import '../enums/user_role.dart';
 import '../enums/gender.dart';
+import '../enums/shift.dart';
 
 class Doctor extends User {
   final String specialization;
   final String department;
-  final String
-  shift; // e.g., "Morning (8:00-16:00)", "Evening (16:00-24:00)", "Night (24:00-8:00)"
+  final Shift shift;
 
   Doctor({
     required super.id,
@@ -18,7 +18,7 @@ class Doctor extends User {
     required super.email,
     required this.specialization,
     required this.department,
-    this.shift = 'Morning (8:00-16:00)', // Default shift
+    this.shift = Shift.morning,
   }) : super(role: UserRole.doctor);
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
@@ -32,7 +32,10 @@ class Doctor extends User {
       email: json['email'],
       specialization: json['specialization'],
       department: json['department'] ?? json['licenseNumber'] ?? 'N/A',
-      shift: json['shift'] ?? 'Morning (8:00-16:00)',
+      shift: Shift.values.firstWhere(
+        (e) => e.name == json['shift'],
+        orElse: () => Shift.morning,
+      ),
     );
   }
 
@@ -49,7 +52,7 @@ class Doctor extends User {
       'role': role.name,
       'specialization': specialization,
       'department': department,
-      'shift': shift,
+      'shift': shift.name,
     };
   }
 
@@ -58,6 +61,7 @@ class Doctor extends User {
     super.displayInfo();
     print('Specialization: $specialization');
     print('Department: $department');
-    print('Shift: $shift');
+    print('Shift: ${shift.displayName}');
   }
+
 }

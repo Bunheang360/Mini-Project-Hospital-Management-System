@@ -1,9 +1,9 @@
 import '../Domain/models/doctor.dart';
 import '../Domain/models/receptionist.dart';
+import '../Domain/models/user.dart';
 import '../Domain/enums/gender.dart';
 import '../Domain/enums/shift.dart';
 import '../Data/Repositories/user_repository.dart';
-import 'validation_service.dart';
 
 class UserService {
   final UserRepository _repository;
@@ -21,11 +21,8 @@ class UserService {
     required String email,
     required String specialization,
     required String department,
-    String shift = 'Morning (8:00-16:00)',
+    Shift shift = Shift.morning,
   }) {
-    if (!_validateUserInput(username, password, phone, email)) {
-      return false;
-    }
 
     if (_repository.isUsernameExists(username)) {
       return false;
@@ -44,6 +41,10 @@ class UserService {
       shift: shift,
     );
 
+    if (!doctor.validate()) {
+    return false;
+  }
+
     _repository.addDoctor(doctor);
     return true;
   }
@@ -59,18 +60,34 @@ class UserService {
   List<Doctor> searchDoctorsBySpecialization(String specialization) {
     final doctors = _repository.getAllDoctors();
     return doctors
-        .where(
-          (d) => d.specialization.toLowerCase().contains(
-            specialization.toLowerCase(),
-          ),
-        )
+        .where((d) => d.specialization
+            .toLowerCase()
+            .contains(specialization.toLowerCase()))
         .toList();
+  }
+
+  List<Doctor> filterDoctorsByDepartment(String department) {
+    final doctors = _repository.getAllDoctors();
+    return doctors
+        .where((d) =>
+            d.department.toLowerCase().contains(department.toLowerCase()))
+        .toList();
+  }
+
+  List<Doctor> getDoctorsByShift(Shift shift) {
+    final doctors = _repository.getAllDoctors();
+    return doctors.where((d) => d.shift == shift).toList();
   }
 
   bool updateDoctor(Doctor doctor) {
     if (_repository.getDoctorById(doctor.id) == null) {
       return false;
     }
+    
+    if (!doctor.validate()) {
+      return false;
+    }
+    
     _repository.updateDoctor(doctor);
     return true;
   }
@@ -94,9 +111,6 @@ class UserService {
     required String email,
     required Shift shift,
   }) {
-    if (!_validateUserInput(username, password, phone, email)) {
-      return false;
-    }
 
     if (_repository.isUsernameExists(username)) {
       return false;
@@ -112,6 +126,10 @@ class UserService {
       email: email,
       shift: shift,
     );
+
+    if (!receptionist.validate()) {
+      return false;
+    }
 
     _repository.addReceptionist(receptionist);
     return true;
@@ -134,6 +152,11 @@ class UserService {
     if (_repository.getReceptionistById(receptionist.id) == null) {
       return false;
     }
+    
+    if (!receptionist.validate()) {
+      return false;
+    }
+    
     _repository.updateReceptionist(receptionist);
     return true;
   }
@@ -144,17 +167,5 @@ class UserService {
     }
     _repository.deleteReceptionist(id);
     return true;
-  }
-
-  bool _validateUserInput(
-    String username,
-    String password,
-    String phone,
-    String email,
-  ) {
-    return ValidationService.isValidUsername(username) &&
-        ValidationService.isValidPassword(password) &&
-        ValidationService.isValidPhone(phone) &&
-        ValidationService.isValidEmail(email);
   }
 }

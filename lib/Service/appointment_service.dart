@@ -54,6 +54,10 @@ class AppointmentService {
       notes: notes,
     );
 
+    if (!appointment.validate()) {
+      return false;
+    }
+
     _repository.addAppointment(appointment);
     return true;
   }
@@ -67,30 +71,39 @@ class AppointmentService {
   }
 
   List<Appointment> getAppointmentsByDoctorId(String doctorId) {
-    return _repository.getAppointmentsByDoctorId(doctorId);
+    final appointments = _repository.getAllAppointments();
+    return appointments.where((a) => a.doctorId == doctorId).toList();
   }
 
   List<Appointment> getAppointmentsByPatientId(String patientId) {
-    return _repository.getAppointmentsByPatientId(patientId);
+    final appointments = _repository.getAllAppointments();
+    return appointments.where((a) => a.patientId == patientId).toList();
+  }
+
+  List<Appointment> getAppointmentsByRoomId(String roomId) {
+    final appointments = _repository.getAllAppointments();
+    return appointments.where((a) => a.roomId == roomId).toList();
+  }
+
+  List<Appointment> getAppointmentsByStatus(AppointmentStatus status) {
+    final appointments = _repository.getAllAppointments();
+    return appointments.where((a) => a.status == status).toList();
   }
 
   List<Appointment> getUpcomingAppointments(String doctorId) {
-    return _repository.getUpcomingAppointmentsByDoctorId(doctorId);
+    final appointments = _repository.getAllAppointments();
+    final now = DateTime.now();
+    return appointments
+        .where((a) =>
+            a.doctorId == doctorId &&
+            a.dateTime.isAfter(now) &&
+            a.isScheduled()).toList();
   }
 
   List<Appointment> getTodayAppointments(String doctorId) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(Duration(days: 1));
-
-    final appointments = _repository.getAppointmentsByDoctorId(doctorId);
+    final appointments = _repository.getAllAppointments();
     return appointments
-        .where(
-          (a) =>
-              a.dateTime.isAfter(today) &&
-              a.dateTime.isBefore(tomorrow) &&
-              a.status == AppointmentStatus.scheduled,
-        )
+        .where((a) => a.doctorId == doctorId && a.isToday() && a.isScheduled())
         .toList();
   }
 
@@ -149,15 +162,12 @@ class AppointmentService {
   Map<AppointmentStatus, int> getAppointmentStatistics() {
     final appointments = _repository.getAllAppointments();
     return {
-      AppointmentStatus.scheduled: appointments
-          .where((a) => a.status == AppointmentStatus.scheduled)
-          .length,
-      AppointmentStatus.completed: appointments
-          .where((a) => a.status == AppointmentStatus.completed)
-          .length,
-      AppointmentStatus.cancelled: appointments
-          .where((a) => a.status == AppointmentStatus.cancelled)
-          .length,
+      AppointmentStatus.scheduled:
+          appointments.where((a) => a.isScheduled()).length,
+      AppointmentStatus.completed:
+          appointments.where((a) => a.isCompleted()).length,
+      AppointmentStatus.cancelled:
+          appointments.where((a) => a.isCancelled()).length,
     };
   }
 }

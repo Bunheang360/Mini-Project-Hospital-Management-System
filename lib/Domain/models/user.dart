@@ -24,6 +24,42 @@ abstract class User {
 
   Map<String, dynamic> toJson();
 
+  // Validation methods
+  bool isValidEmail() {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  bool isValidPhone() {
+    final phoneRegex = RegExp(r'^\d{10}$');
+    return phoneRegex.hasMatch(phone);
+  }
+
+  bool isValidPassword() {
+    return password.length >= 6;
+  }
+
+  bool isValidUsername() {
+    return username.length >= 3 && !username.contains(' ');
+  }
+
+  bool isValidId() {
+    return id.isNotEmpty && id.length >= 3;
+  }
+
+  bool isValidName() {
+    return name.isNotEmpty && name.length >= 2;
+  }
+
+  bool validate() {
+    return isValidId() &&
+           isValidUsername() &&
+           isValidPassword() &&
+           isValidName() &&
+           isValidEmail() &&
+           isValidPhone();
+  }
+
   void displayInfo() {
     print('ID: $id');
     print('Username: $username');

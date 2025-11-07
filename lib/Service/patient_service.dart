@@ -1,7 +1,6 @@
 import '../Domain/models/patient.dart';
 import '../Domain/enums/gender.dart';
 import '../Data/Repositories/patient_repository.dart';
-import 'validation_service.dart';
 
 class PatientService {
   final PatientRepository _repository;
@@ -17,9 +16,6 @@ class PatientService {
     required String address,
     String? medicalHistory,
   }) {
-    if (!ValidationService.isValidPhone(phoneNumber)) {
-      return false;
-    }
 
     if (_repository.getPatientById(id) != null) {
       return false;
@@ -35,6 +31,10 @@ class PatientService {
       medicalHistory: medicalHistory,
       registrationDate: DateTime.now(),
     );
+
+    if (!patient.validate()) {
+      return false;
+    }
 
     _repository.addPatient(patient);
     return true;
@@ -59,11 +59,31 @@ class PatientService {
     final patients = _repository.getAllPatients();
     return patients.where((p) => p.age >= minAge && p.age <= maxAge).toList();
   }
+  
+  List<Patient> getPatientsByGender(Gender gender) {
+    final patients = _repository.getAllPatients();
+    return patients.where((p) => p.gender == gender).toList();
+  }
+
+  List<Patient> getKids() {
+    final patients = _repository.getAllPatients();
+    return patients.where((p) => p.isKid()).toList();
+  }
+
+  List<Patient> getElderly() {
+    final patients = _repository.getAllPatients();
+    return patients.where((p) => p.isElderly()).toList();
+  }
 
   bool updatePatient(Patient patient) {
     if (_repository.getPatientById(patient.id) == null) {
       return false;
     }
+
+    if (!patient.validate()) {
+      return false;
+    }
+
     _repository.updatePatient(patient);
     return true;
   }
@@ -72,6 +92,7 @@ class PatientService {
     if (_repository.getPatientById(id) == null) {
       return false;
     }
+    
     _repository.deletePatient(id);
     return true;
   }

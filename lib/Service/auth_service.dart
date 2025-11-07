@@ -1,6 +1,5 @@
 import '../Domain/models/user.dart';
 import '../Data/Repositories/user_repository.dart';
-import 'validation_service.dart';
 
 class AuthenticationService {
   final UserRepository _userRepository;
@@ -20,7 +19,8 @@ class AuthenticationService {
       return false;
     }
 
-    if (!ValidationService.isValidPassword(newPassword)) {
+    // Use User model's validation
+    if (newPassword.length < 6) {
       return false;
     }
 

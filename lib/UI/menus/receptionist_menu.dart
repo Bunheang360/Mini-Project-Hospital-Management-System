@@ -10,7 +10,6 @@ import '../../Service/patient_service.dart';
 import '../../Service/appointment_service.dart';
 import '../../Service/user_service.dart';
 import '../../Service/room_service.dart';
-import '../../Service/validation_service.dart';
 import '../utils/console_utils.dart';
 
 class ReceptionistMenu {
@@ -1018,7 +1017,7 @@ class ReceptionistMenu {
 
     // Validate phone number format
     if (validationType == 'phone') {
-      if (!ValidationService.isValidPhone(newValue)) {
+      if (!RegExp(r'^\d{10}$').hasMatch(newValue)) {
         print('Invalid phone number format! Must be 10 digits.');
         stdout.write('\nPress Enter to continue...');
         stdin.readLineSync();

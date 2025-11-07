@@ -48,6 +48,6 @@ class Receptionist extends User {
   @override
   void displayInfo() {
     super.displayInfo();
-    print('Shift: ${shift.name}');
+    print('Shift: ${shift.displayName}');
   }
 }
