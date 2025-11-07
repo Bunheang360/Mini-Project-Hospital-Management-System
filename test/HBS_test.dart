@@ -45,11 +45,11 @@ void main() {
       authService = AuthenticationService(userRepo);
     });
 
-    test('Test 1: User Validation Functions', () {
+    test('should validate user fields correctly for valid and invalid inputs', () {
       // Create test user instance for validation
       final validUser = Admin(
         id: 'ADM001',
-        username: 'admin_test',
+        username: 'admin_user',
         password: 'Pass123',
         name: 'Test Admin',
         gender: Gender.male,
@@ -83,7 +83,7 @@ void main() {
       expect(invalidUser.isValidName(), isFalse);
     });
 
-    test('Test 2: Appointment Validation and Helper Functions', () {
+    test('should validate appointment fields and check date/time helper functions', () {
       final futureAppointment = Appointment(
         id: 'APT001',
         patientId: 'PAT001',
@@ -115,11 +115,11 @@ void main() {
       expect(pastAppointment.isValidDateTime(), isFalse);
     });
 
-    test('Test 3: AppointmentService - Filter Appointments by Patient and Doctor', () {
+    test('should filter appointments by patient ID and doctor ID correctly', () {
       // Setup: Add doctor and patients
       userService.addDoctor(
         id: 'DOC_FILTER001',
-        username: 'filter_doctor',
+        username: 'dr_filter',
         password: 'Pass123',
         name: 'Filter Doctor',
         gender: Gender.male,
@@ -191,11 +191,11 @@ void main() {
       patientService.deletePatient('PAT_FILTER002');
     });
 
-    test('Test 4: AppointmentService - Appointment Statistics', () {
+    test('should calculate appointment statistics by status correctly', () {
       // Setup
       userService.addDoctor(
         id: 'DOC_STAT001',
-        username: 'stat_doctor',
+        username: 'dr_statistics',
         password: 'Pass123',
         name: 'Stat Doctor',
         gender: Gender.male,
@@ -287,10 +287,10 @@ void main() {
       patientService.deletePatient('PAT_STAT003');
     });
 
-    test('Test 5: UserService - addDoctor() and getDoctorById() Functions', () {
+    test('should add a new doctor and retrieve doctor by ID successfully', () {
       final success = userService.addDoctor(
         id: 'DOC_TEST001',
-        username: 'test_doctor',
+        username: 'dr_smith',
         password: 'Pass123',
         name: 'Test Doctor',
         gender: Gender.male,
@@ -311,7 +311,7 @@ void main() {
       userService.deleteDoctor('DOC_TEST001');
     });
 
-    test('Test 6: PatientService - addPatient() and getPatientById() Functions', () {
+    test('should add a new patient and retrieve patient by ID successfully', () {
       final success = patientService.addPatient(
         id: 'PAT_TEST001',
         name: 'Test Patient',
@@ -334,7 +334,7 @@ void main() {
       patientService.deletePatient('PAT_TEST001');
     });
 
-    test('Test 7: PatientService - updatePatient() Function', () {
+    test('should update patient information successfully', () {
       // Add patient first
       patientService.addPatient(
         id: 'PAT_TEST002',
@@ -373,11 +373,11 @@ void main() {
       patientService.deletePatient('PAT_TEST002');
     });
 
-    test('Test 8: AppointmentService - createAppointment() Function', () {
+    test('should create a new appointment with valid patient and doctor', () {
       // Setup: Add doctor and patient
       userService.addDoctor(
         id: 'DOC_TEST002',
-        username: 'test_doctor2',
+        username: 'dr_jones',
         password: 'Pass123',
         name: 'Test Doctor 2',
         gender: Gender.male,
@@ -420,11 +420,11 @@ void main() {
       patientService.deletePatient('PAT_TEST003');
     });
 
-    test('Test 9: AppointmentService - updateAppointmentStatus() Function', () {
+    test('should update appointment status and notes successfully', () {
       // Setup
       userService.addDoctor(
         id: 'DOC_TEST003',
-        username: 'test_doctor3',
+        username: 'dr_williams',
         password: 'Pass123',
         name: 'Test Doctor 3',
         gender: Gender.female,
@@ -470,7 +470,7 @@ void main() {
       patientService.deletePatient('PAT_TEST004');
     });
 
-    test('Test 10: RoomService - Add Room, Assign Patient, and Release Room', () {
+    test('should add room, assign patient to room, and release room successfully', () {
       // Test adding a room
       final addRoomSuccess = roomService.addRoom(
         id: 'RM_TEST001',
