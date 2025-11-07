@@ -16,13 +16,13 @@ This Hospital Management System is a console application that provides a complet
 
 The test suite includes 10 test cases covering:
 
-1.  ✅ User validation functions
-2.  ✅ Appointment validation and helper functions
-3.  ✅ Appointment filtering by patient and doctor
-4.  ✅ Appointment statistics calculation
-5.  ✅ Doctor creation and retrieval
-6.  ✅ Patient creation and retrieval
-7.  ✅ Patient information updates
-8.  ✅ Appointment creation
-9.  ✅ Appointment status updates
-10. ✅ Room management (add, assign, release)
+1. User validation functions
+2. Appointment validation and helper functions
+3. Appointment filtering by patient and doctor
+4. Appointment statistics calculation
+5. Doctor creation and retrieval
+6. Patient creation and retrieval
+7. Patient information updates
+8. Appointment creation
+9. Appointment status updates
+10. Room management (add, assign, release)
