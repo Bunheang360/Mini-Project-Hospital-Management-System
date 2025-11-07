@@ -10,7 +10,7 @@ This Hospital Management System is a console application that provides a complet
 
 ### Use Case Diagram
 
-![Use Case Diagram](./Use%20Case%20Diagram.drawio.png)
+![Use Case Diagram](./Use%20Case%20diagram.jpg)
 
 ### Test Coverage
 
