@@ -5,6 +5,7 @@ import '../../Domain/models/doctor.dart';
 import '../../Domain/models/patient.dart';
 import '../../Domain/models/room.dart';
 import '../../Domain/enums/gender.dart';
+import '../../Domain/enums/shift.dart';
 import '../../Domain/enums/appointment_status.dart';
 import '../../Service/patient_service.dart';
 import '../../Service/appointment_service.dart';
@@ -72,7 +73,7 @@ class ReceptionistMenu {
       print('6. Back');
       stdout.write('Select an option: ');
 
-      final choice = stdin.readLineSync();
+      final choice = stdin.readLineSync()?.trim();
 
       switch (choice) {
         case '1':
@@ -94,6 +95,7 @@ class ReceptionistMenu {
           return;
         default:
           print('\nInvalid option!');
+          sleep(Duration(seconds: 1));
       }
     }
   }
@@ -568,7 +570,7 @@ class ReceptionistMenu {
       print('  Name: ${selectedDoctor.name}');
       print('  Specialization: ${selectedDoctor.specialization}');
       print('  Department: ${selectedDoctor.department}');
-      print('  Shift: ${selectedDoctor.shift}');
+      print('  Shift: ${selectedDoctor.shift.displayName}');
       _displayDoctorSchedule(selectedDoctor.id);
     } else {
       print('\nMultiple doctors found:');
@@ -602,7 +604,7 @@ class ReceptionistMenu {
       print('  Name: ${selectedDoctor.name}');
       print('  Specialization: ${selectedDoctor.specialization}');
       print('  Department: ${selectedDoctor.department}');
-      print('  Shift: ${selectedDoctor.shift}');
+      print('  Shift: ${selectedDoctor.shift.displayName}');
       _displayDoctorSchedule(selectedDoctor.id);
     }
 
