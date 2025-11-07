@@ -81,7 +81,7 @@ The system supports various use cases for different user roles:
 
 ### Use Case Diagram
 
-![Use Case Diagram](./Use%20Case%20Diagram.drawio.png)
+![Use Case Diagram](./Use%20Case%20diagram.jpg)
 
 *Figure 2: System Use Cases and Actor Interactions*
 
